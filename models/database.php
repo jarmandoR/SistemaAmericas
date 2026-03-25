@@ -1,9 +1,9 @@
 <?php
 class Database {
     private $host = "localhost";
-    private $db_name = "u633742531_Multilicores";
-    private $username = "u633742531_Multilicores25";
-    private $password = "Multilicores2025";
+    private $db_name = "u885436177_americas";
+    private $username = "u885436177_americas";
+    private $password = "Americas2O2G";
     private $charset = "utf8mb4";
 
     // private $host = "localhost";
