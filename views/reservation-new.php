@@ -41,7 +41,7 @@ require_once "../models/database.php";
                             <span class="roboto-medium">CLIENTE:</span> 
                             <span class="text-danger">&nbsp; <i class="fas fa-exclamation-triangle"></i> Seleccione un cliente</span>
                   			<form action="" style="display: inline-block !important;">
-                            	Multilicores
+                            	Edmar Americas
                                 <button type="button" class="btn btn-danger"><i class="fas fa-user-times"></i></button>
                             </form>
                         </div>

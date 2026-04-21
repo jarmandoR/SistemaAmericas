@@ -3,7 +3,7 @@
 
 // Lista de dominios permitidos
 $allowed_origins = [
-    'https://8892-179-51-102-105.ngrok-free.app/Multilicores'
+    'https://8892-179-51-102-105.ngrok-free.app/Edmar Americas'
     
 ];
 

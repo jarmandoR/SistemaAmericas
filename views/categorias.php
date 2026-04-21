@@ -73,7 +73,7 @@ $promocionesActivas = $tienePromociones ? obtenerPromocionesActivas() : [];
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multilicores</title>
+    <title>Edmar Americas</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="../css/categoria.css" rel="stylesheet" type="text/css" />
@@ -189,9 +189,9 @@ $promocionesActivas = $tienePromociones ? obtenerPromocionesActivas() : [];
         <div class="container py-3">
             <nav class="navbar navbar-expand-lg navbar-light p-0">
                 <div class="d-flex align-items-center gap-2 flex-shrink-0">
-                    <img src="../assets/img/logoM.png" alt="Logo Multilicores" class="logo-img" style="height: 50px;">
+                    <img src="../assets/img/logoM.png" alt="Logo Edmar Americas" class="logo-img" style="height: 50px;">
                     <div class="d-flex flex-column">
-                        <h1 class="company-title m-0 fs-5">Multilicores</h1>
+                        <h1 class="company-title m-0 fs-5">Edmar Americas</h1>
                         <p class="company-subtitle m-0 small">Distribución especializada en Licores</p>
                     </div>
                 </div>

@@ -38,7 +38,7 @@ require_once "../models/database.php";
                         </p>
                         <div>
                             <span class="roboto-medium">CLIENTE:</span> 
-                            &nbsp; Multilicores
+                            &nbsp; Edmar Americas
                         </div>
                         <div class="table-responsive">
                             <table class="table table-dark table-sm">

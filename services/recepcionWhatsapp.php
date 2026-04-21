@@ -52,7 +52,7 @@ write_log("Mensaje recibido de $telefonoCliente: $mensaje");
 if ($mensaje != null) {
     $link="https://multilicoreschapinero.com/sistema/views/categorias.php?idCli=$telefonoCliente";
     $respuestaTexto = "    
-        🍷 ¡Bienvenido a Multilicores!
+        🍷 ¡Bienvenido a Edmar Americas!
 Tu experiencia en licores comienza aquí.
 Haz tu pedido en segundos y recíbelo sin complicaciones. 🚚💨
 📲 Ver catálogo y comprar ahora:

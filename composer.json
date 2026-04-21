@@ -2,7 +2,7 @@
     "name": "jose5/multilicores",
     "autoload": {
         "psr-4": {
-            "Jose5\\Multilicores\\": "src/"
+            "Jose5\\Edmar Americas\\": "src/"
         }
     },
     "authors": [

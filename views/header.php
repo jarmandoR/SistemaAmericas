@@ -13,7 +13,7 @@ date_default_timezone_set('America/Bogota');
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-	<title>Multilicores</title>
+	<title>Edmar Americas</title>
 
 	<!-- Normalize V8.0.1 -->
 	<link rel="stylesheet" href="../css/normalize.css">
@@ -63,7 +63,7 @@ date_default_timezone_set('America/Bogota');
 					<i class="far fa-times-circle show-nav-lateral"></i>
 					<img src="../assets/img/logoM.png" class="img-fluid" alt="Avatar">
 					<figcaption class="roboto-medium text-center">
-						Multilicores <br><small class="roboto-condensed-light">Administración</small>
+						Edmar Americas <br><small class="roboto-condensed-light">Administración</small>
 					</figcaption>
 				</figure>
 				<div class="full-box nav-lateral-bar"></div>
