@@ -8,7 +8,7 @@ require_once "../models/database.php";
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'insert') {
     $titulo = $_POST['titulo'] ?? '';
     $descripcion = $_POST['descripcion'] ?? '';
-    $patrocinador = $_POST['patrocinador'] ?? '';
+    $codigo = $_POST['codigo'] ?? '';
     
     $errores = [];
     if (empty($titulo)) {
@@ -65,15 +65,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     <?php endif; ?>
 
     <!-- Formulario Moderno -->
-    <div class="modern-card mb-4">
-        <div class="card-body p-4">
-            <div class="d-flex align-items-center mb-4">
+    <div class="d-flex justify-content-end mb-4">
+        <button type="button" class="btn btn-modern btn-primary-modern" id="btn-agregar-promo" data-bs-toggle="modal" data-bs-target="#promoModal">
+            <i class="fas fa-plus-circle me-2"></i>Agregar promo
+        </button>
+    </div>
+
+    <div class="modal fade" id="promoModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content promo-modal-content">
+                <div class="modal-header">
+            <div class="d-flex align-items-center mb-0">
                 <i class="fas fa-plus-circle text-primary me-2"></i>
-                <h5 class="mb-0 fw-semibold">Nueva Promoción</h5>
+                <h5 class="mb-0 fw-semibold" id="form-title">Nueva Promoción</h5>
             </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4">
             
             <form method="POST" action="" id="form-promocion">
-                <input type="hidden" name="action" value="insert">
+                <input type="hidden" name="action" id="action" value="insert">
+                <input type="hidden" name="id" id="id">
                 
                 <div class="row g-4">
                     <div class="col-md-6">
@@ -85,22 +97,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     </div>
                     
                     <div class="col-md-6">
-                        <label for="patrocinador" class="form-label fw-medium">Patrocinador</label>
-                        <input type="text" class="form-control" id="patrocinador" name="patrocinador" 
-                               placeholder="Ej: Empresa XYZ">
+                        <label for="codigo" class="form-label fw-medium">
+                            Código del Producto <span class="text-danger">*</span>
+                        </label>
+                        <input type="number" class="form-control" id="codigo" name="codigo" min="1"
+                               placeholder="Ej: 1001" required>
                     </div>
                     
                     <div class="col-md-6">
                         <label for="estado" class="form-label fw-medium">Estado</label>
                         <select class="form-select" id="estado" name="estado">
-                            <option value="Activa" selected>Activa</option>
-                            <option value="Inactiva">Inactiva</option>
+                            <option value="1" selected>Activa</option>
+                            <option value="0">Inactiva</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="prioridad" class="form-label fw-medium">Prioridad</label>
+                        <input type="number" class="form-control" id="prioridad" name="prioridad" min="0" value="0">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label for="precio_unidad_producto" class="form-label fw-medium">Precio Unidad</label>
+                        <input type="number" class="form-control" id="precio_unidad_producto" name="precio_unidad_producto" min="0" value="0">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label for="precio_paca_producto" class="form-label fw-medium">Precio Paca</label>
+                        <input type="number" class="form-control" id="precio_paca_producto" name="precio_paca_producto" min="0" value="0">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label for="acti_Unidad" class="form-label fw-medium">Venta por Unidad</label>
+                        <select class="form-select" id="acti_Unidad" name="acti_Unidad">
+                            <option value="1" selected>Sí</option>
+                            <option value="0">No</option>
                         </select>
                     </div>
                     
                     <div class="col-md-6">
                         <label for="imagen" class="form-label fw-medium">Imagen</label>
-                        <input type="file" class="form-control" id="imagen" name="imagen" accept="image/*">
+                        <input type="file" class="form-control" id="imagen" name="imagen" accept="image/*" required>
                     </div>
                     
                     <div class="col-12">
@@ -147,6 +184,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             </form>
         </div>
     </div>
+        </div>
+    </div>
 
     <!-- Tabla Moderna -->
     <div class="modern-card">
@@ -164,6 +203,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <tr>
                             <th>ID</th>
                             <th>Promoción</th>
+                            <th>Código</th>
+                            <th>Precio Paca</th>
                             <th>Fecha</th>
                             <th>Estado</th>
                             <th>Descripción</th>
@@ -204,9 +245,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     </div>
 </div>
 
+<link href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 // Mantener todo el JavaScript original pero con mejoras visuales
+let dataTablesCargando = false;
+
 document.addEventListener('DOMContentLoaded', function() {
     // Emoji picker mejorado
     document.getElementById('abrir-emojis').addEventListener('click', function (e) {
@@ -232,7 +276,19 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Mantener funcionalidad original del formulario
+    const formPromocion = document.getElementById('form-promocion');
+    const btnAgregarPromo = document.getElementById('btn-agregar-promo');
+
+    btnAgregarPromo.addEventListener('click', function() {
+        formPromocion.reset();
+        resetPromoForm();
+    });
+
+    formPromocion.addEventListener('reset', function() {
+        setTimeout(resetPromoForm, 0);
+    });
+
+    // Guardar o actualizar promocion
     document.getElementById('form-promocion').addEventListener('submit', function(e) {
         e.preventDefault();
         const form = e.target;
@@ -254,6 +310,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Mostrar alerta de éxito moderna
                 showAlert('success', '✅ Promoción guardada con éxito');
                 form.reset();
+                resetPromoForm();
+                cargarPromociones();
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('promoModal')).hide();
             } else {
                 showAlert('error', '⚠️ Error al guardar: ' + data.message);
             }
@@ -268,7 +327,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Cargar promociones con diseño moderno
+    cargarPromociones();
+});
+
+function cargarPromociones() {
     fetch('../controllers/promoController.php', {
         method: 'POST',
         headers: {
@@ -278,18 +340,39 @@ document.addEventListener('DOMContentLoaded', function() {
     })
     .then(response => response.json())
     .then(data => {
+        if (window.jQuery && $.fn.DataTable && $.fn.DataTable.isDataTable('#tabla-promos')) {
+            $('#tabla-promos').DataTable().destroy();
+        }
+
         const tbody = document.querySelector("#tabla-promos tbody");
         tbody.innerHTML = '';
-        data.forEach(promo => {
-            const statusClass = promo.pro_estado === 'Activa' ? 'status-active' : 
-                               promo.pro_estado === 'Inactiva' ? 'status-inactive' : 'status-scheduled';
+        const promociones = data.promociones || data;
+
+        promociones.forEach(promo => {
+            const statusClass = String(promo.estado) === '1' ? 'status-active' : 'status-inactive';
+            const estadoTexto = String(promo.estado) === '1' ? 'Activa' : 'Inactiva';
+            const estadoChecked = String(promo.estado) === '1' ? 'checked' : '';
+            const imagen = promo.imagen ? `../assets/img/licores/promos/${promo.imagen}` : '../assets/img/licores/placeholder.jpg';
             
+            const promoJson = encodeURIComponent(JSON.stringify(promo));
             const fila = `
                 <tr>
                     <td><span class="fw-medium">${promo.id_promocion }</span></td>
                     <td><span class="fw-medium">${promo.titulo}</span></td>
+                    <td>${promo.codigo || '-'}</td>
+                    <td>$${Number(promo.precio_paca_producto || 0).toLocaleString('es-CO')}</td>
                     <td>${promo.creado_en || '-'}</td>
-                    <td><span class="status-badge ${statusClass}">${promo.estado }</span></td>
+                    <td>
+                        <div class="form-check form-switch promo-status-switch">
+                            <input class="form-check-input" type="checkbox" role="switch"
+                                   id="estadoPromo${promo.id_promocion}"
+                                   ${estadoChecked}
+                                   onchange="cambiarEstadoPromo(this, ${promo.id_promocion})">
+                            <label class="form-check-label status-badge ${statusClass}" for="estadoPromo${promo.id_promocion}">
+                                ${estadoTexto}
+                            </label>
+                        </div>
+                    </td>
                     <td>
                       <span class="text-muted" style="max-width: 200px; display: inline-block; word-wrap: break-word; white-space: normal;">
                         ${promo.descripcion}
@@ -297,15 +380,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     </td>
                     <td>
                         <div style="width: 50px; height: 50px; background: #f8fafc; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                            <img src="../assets/img/licores/promos/${promo.imagen}" style="width: 100%; height: 100%; object-fit: cover;" alt="Promoción">
+                            <img src="${imagen}" style="width: 100%; height: 100%; object-fit: cover;" alt="Promocion">
                         </div>
                     </td>
                     <td>
                         <div class="d-flex gap-2">
-                            <button class="btn btn-outline-primary btn-sm" title="Editar" style="border-radius: 6px;">
+                            <button class="btn btn-outline-primary btn-sm" onclick="editarPromo('${promoJson}')" title="Editar" style="border-radius: 6px;">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="btn btn-primary btn-sm" onclick='enviarPromo(${promo.id_promocion}, ${JSON.stringify(promo.descripcion)}, ${JSON.stringify(promo.imagen)})' title="Enviar" style="border-radius: 6px;">
+                            <button class="btn btn-primary btn-sm" onclick="enviarPromoDesdeJson('${promoJson}')" title="Enviar" style="border-radius: 6px;">
                                 <i class="fas fa-paper-plane"></i>
                             </button>
                         </div>
@@ -313,9 +396,72 @@ document.addEventListener('DOMContentLoaded', function() {
                 </tr>`;
             tbody.innerHTML += fila;
         });
+
+        inicializarTablaPromos();
     })
     .catch(error => console.error("Error:", error));
-});
+}
+
+function inicializarTablaPromos() {
+    if (!window.jQuery) {
+        return;
+    }
+
+    if (!$.fn.DataTable) {
+        cargarDataTables(function() {
+            inicializarTablaPromos();
+        });
+        return;
+    }
+
+    $('#tabla-promos').DataTable({
+        pageLength: 50,
+        lengthMenu: [[50, 100, 200, -1], [50, 100, 200, 'Todos']],
+        order: [[0, 'desc']],
+        language: {
+            decimal: '',
+            emptyTable: 'No hay promociones registradas',
+            info: 'Mostrando _START_ a _END_ de _TOTAL_ promociones',
+            infoEmpty: 'Mostrando 0 a 0 de 0 promociones',
+            infoFiltered: '(filtrado de _MAX_ promociones en total)',
+            lengthMenu: 'Mostrar _MENU_ promociones',
+            loadingRecords: 'Cargando...',
+            processing: 'Procesando...',
+            search: 'Buscar:',
+            zeroRecords: 'No se encontraron promociones',
+            paginate: {
+                first: 'Primero',
+                last: 'Ultimo',
+                next: 'Siguiente',
+                previous: 'Anterior'
+            }
+        }
+    });
+}
+
+function cargarDataTables(callback) {
+    if (dataTablesCargando) {
+        return;
+    }
+
+    dataTablesCargando = true;
+    cargarScript('https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js', function() {
+        cargarScript('https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js', function() {
+            dataTablesCargando = false;
+            callback();
+        });
+    });
+}
+
+function cargarScript(src, callback) {
+    const script = document.createElement('script');
+    script.src = src;
+    script.onload = callback;
+    script.onerror = function() {
+        dataTablesCargando = false;
+    };
+    document.body.appendChild(script);
+}
 
 function showAlert(type, message) {
     const alertClass = type === 'success' ? 'alert-success-modern' : 'alert-danger-modern';
@@ -339,6 +485,80 @@ function showAlert(type, message) {
             alert.remove();
         }
     }, 5000);
+}
+
+function editarPromo(promoJson) {
+    const promo = JSON.parse(decodeURIComponent(promoJson));
+
+    document.getElementById('form-title').textContent = 'Editar Promoción';
+    document.getElementById('action').value = 'update';
+    document.getElementById('id').value = promo.id_promocion || '';
+    document.getElementById('titulo').value = promo.titulo || '';
+    document.getElementById('codigo').value = promo.codigo || '';
+    document.getElementById('estado').value = String(promo.estado ?? '1');
+    document.getElementById('prioridad').value = promo.prioridad || 0;
+    document.getElementById('precio_unidad_producto').value = promo.precio_unidad_producto || 0;
+    document.getElementById('precio_paca_producto').value = promo.precio_paca_producto || 0;
+    document.getElementById('acti_Unidad').value = String(promo.acti_Unidad ?? '1');
+    document.getElementById('descripcion').value = promo.descripcion || '';
+    document.getElementById('imagen').required = false;
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('promoModal')).show();
+}
+
+function resetPromoForm() {
+    document.getElementById('form-title').textContent = 'Nueva Promoción';
+    document.getElementById('action').value = 'insert';
+    document.getElementById('id').value = '';
+    document.getElementById('imagen').required = true;
+}
+
+function cambiarEstadoPromo(input, idPromo) {
+    const nuevoEstado = input.checked ? 1 : 0;
+    const label = input.closest('.promo-status-switch').querySelector('.form-check-label');
+
+    input.disabled = true;
+    actualizarTextoEstado(label, nuevoEstado);
+
+    const formData = new FormData();
+    formData.append('action', 'cambiarEstado');
+    formData.append('id', idPromo);
+    formData.append('estado', nuevoEstado);
+
+    fetch('../controllers/promoController.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.success) {
+            input.checked = !input.checked;
+            actualizarTextoEstado(label, input.checked ? 1 : 0);
+            showAlert('error', data.message || 'No se pudo actualizar el estado.');
+            return;
+        }
+
+        showAlert('success', data.message || 'Estado actualizado correctamente.');
+    })
+    .catch(error => {
+        console.error('Error al cambiar estado:', error);
+        input.checked = !input.checked;
+        actualizarTextoEstado(label, input.checked ? 1 : 0);
+        showAlert('error', 'Error de red al actualizar el estado.');
+    })
+    .finally(() => {
+        input.disabled = false;
+    });
+}
+
+function actualizarTextoEstado(label, estado) {
+    label.textContent = estado === 1 ? 'Activa' : 'Inactiva';
+    label.classList.toggle('status-active', estado === 1);
+    label.classList.toggle('status-inactive', estado !== 1);
+}
+
+function enviarPromoDesdeJson(promoJson) {
+    const promo = JSON.parse(decodeURIComponent(promoJson));
+    enviarPromo(promo.id_promocion, promo.descripcion, promo.imagen);
 }
 
 function enviarPromo(id, descripcion, imagen) {
@@ -398,7 +618,6 @@ function showAlert(type, message) {
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/@joeattardi/emoji-button@4.6.2/dist/index.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
@@ -428,6 +647,12 @@ body {
 
 .modern-card:hover {
     box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.promo-modal-content {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 20px 45px rgb(15 23 42 / 0.18);
 }
 
 .page-header {
@@ -510,6 +735,17 @@ body {
     box-shadow: var(--card-shadow);
 }
 
+.dataTables_wrapper {
+    padding: 1rem;
+}
+
+.dataTables_wrapper .dataTables_length select,
+.dataTables_wrapper .dataTables_filter input {
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 0.4rem 0.65rem;
+}
+
 .table-modern thead {
     background: #f8fafc;
 }
@@ -532,6 +768,19 @@ body {
     border-radius: 20px;
     font-size: 0.875rem;
     font-weight: 500;
+}
+
+.promo-status-switch {
+    min-width: 120px;
+}
+
+.promo-status-switch .form-check-input {
+    cursor: pointer;
+}
+
+.promo-status-switch .form-check-label {
+    margin-left: 0.35rem;
+    cursor: pointer;
 }
 
 .status-active {
