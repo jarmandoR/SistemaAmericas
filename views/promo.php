@@ -957,6 +957,17 @@ body {
     color: var(--secondary-color);
 }
 
+#tabla-promos thead th,
+#tabla-promos thead th a,
+#tabla-promos thead th span,
+#tabla-promos thead .dt-column-title {
+    color: #1f2937 !important;
+}
+
+#tabla-promos thead {
+    background: #f8fafc !important;
+}
+
 .table-modern td {
     border: none;
     padding: 1rem;
