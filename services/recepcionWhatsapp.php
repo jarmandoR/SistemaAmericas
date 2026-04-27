@@ -50,7 +50,7 @@ $sender = new WhatsappSender($conn);
 write_log("Mensaje recibido de $telefonoCliente: $mensaje");
 
 if ($mensaje != null) {
-    $link="https://multilicoreschapinero.com/sistema/views/categorias.php?idCli=$telefonoCliente";
+    $link="https://edmaramericas.com/sistema/views/categorias.php?idCli=$telefonoCliente";
     $respuestaTexto = "    
         🍷 ¡Bienvenido a Edmar Americas!
 Tu experiencia en licores comienza aquí.

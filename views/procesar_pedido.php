@@ -388,7 +388,7 @@ try {
                     clearInterval(intervalo);
 
                     redireccionAutomatica = true; // ✅ marcamos que fue nuestra redirección
-                    window.location.href = "https://multilicoreschapinero.com/sistema/views/categorias.php?idCli=" + numCliente;
+                    window.location.href = "https://edmaramericas.com/sistema/views/categorias.php?idCli=" + numCliente;
                 }
             }, 1000);
 
