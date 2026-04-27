@@ -288,6 +288,14 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(resetPromoForm, 0);
     });
 
+    formPromocion.addEventListener('invalid', function(e) {
+        e.preventDefault();
+        const label = formPromocion.querySelector(`label[for="${e.target.id}"]`);
+        const campo = label ? label.textContent.replace('*', '').trim() : 'este campo';
+        showAlert('error', `Por favor completa ${campo}.`);
+        e.target.focus();
+    }, true);
+
     // Guardar o actualizar promocion
     document.getElementById('form-promocion').addEventListener('submit', function(e) {
         e.preventDefault();
@@ -304,11 +312,11 @@ document.addEventListener('DOMContentLoaded', function() {
             method: 'POST',
             body: formData
         })
-        .then(res => res.json())
+        .then(parseJsonResponse)
         .then(data => {
             if (data.success) {
                 // Mostrar alerta de éxito moderna
-                showAlert('success', '✅ Promoción guardada con éxito');
+                showAlert('success', data.message || 'Promocion guardada con exito');
                 form.reset();
                 resetPromoForm();
                 cargarPromociones();
@@ -319,7 +327,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(err => {
             console.error(err);
-            showAlert('error', '❌ Error de red o servidor');
+            showAlert('error', err.message || 'Error de red o servidor');
         })
         .finally(() => {
             submitBtn.innerHTML = originalText;
@@ -338,7 +346,7 @@ function cargarPromociones() {
         },
         body: 'action=mostrar'
     })
-    .then(response => response.json())
+    .then(parseJsonResponse)
     .then(data => {
         if (window.jQuery && $.fn.DataTable && $.fn.DataTable.isDataTable('#tabla-promos')) {
             $('#tabla-promos').DataTable().destroy();
@@ -463,7 +471,7 @@ function cargarScript(src, callback) {
     document.body.appendChild(script);
 }
 
-function showAlert(type, message) {
+function showAlertLegacy(type, message) {
     const alertClass = type === 'success' ? 'alert-success-modern' : 'alert-danger-modern';
     const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle';
     
@@ -528,7 +536,7 @@ function cambiarEstadoPromo(input, idPromo) {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
+    .then(parseJsonResponse)
     .then(data => {
         if (!data.success) {
             input.checked = !input.checked;
@@ -572,7 +580,7 @@ function enviarPromo(id, descripcion, imagen) {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
+    .then(parseJsonResponse)
     .then(result => {
         if (result.error) {
             showAlert('error', 'Error: ' + result.error);
@@ -588,11 +596,30 @@ function enviarPromo(id, descripcion, imagen) {
         showAlert('error', 'Error de red al enviar la promoción.');
     });
 }
+function parseJsonResponse(response) {
+    return response.text().then(text => {
+        try {
+            return text ? JSON.parse(text) : {};
+        } catch (error) {
+            throw new Error('Respuesta invalida del servidor: ' + text.slice(0, 250));
+        }
+    });
+}
+
 function showAlert(type, message) {
-    const alertContainer = document.getElementById('alert-container');
+    const modal = document.getElementById('promoModal');
+    const modalAbierto = modal && modal.classList.contains('show');
+    const alertContainer = modalAbierto
+        ? modal.querySelector('.modal-body')
+        : document.getElementById('alert-container');
+
+    if (!alertContainer) {
+        alert(message);
+        return;
+    }
 
     // Elimina alertas anteriores si existen
-    alertContainer.innerHTML = '';
+    alertContainer.querySelectorAll('.js-promo-alert').forEach(alert => alert.remove());
 
     // Define la clase según el tipo
     const alertClass = type === 'success'
@@ -604,11 +631,11 @@ function showAlert(type, message) {
         : '<i class="bi bi-exclamation-triangle-fill me-2"></i>';
 
     const alert = document.createElement('div');
-    alert.className = `alert alert-modern ${alertClass} d-flex align-items-center mb-4`;
+    alert.className = `alert alert-modern ${alertClass} js-promo-alert d-flex align-items-center mb-4`;
     alert.setAttribute('role', 'alert');
     alert.innerHTML = `${icon} ${message}`;
 
-    alertContainer.appendChild(alert);
+    alertContainer.prepend(alert);
 
     // Ocultar automáticamente después de 4 segundos
     setTimeout(() => {

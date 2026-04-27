@@ -2,6 +2,10 @@
 require_once "../models/Promo.php";
 
 function responderJson($success, $message = "", $extra = []) {
+    if (ob_get_length()) {
+        ob_clean();
+    }
+
     header('Content-Type: application/json');
     echo json_encode(array_merge([
         "success" => $success,
@@ -158,7 +162,7 @@ try {
     }
 
     responderJson(false, "Accion no valida.");
-} catch (Exception $e) {
+} catch (Throwable $e) {
     responderJson(false, "Error del servidor: " . $e->getMessage());
 }
 ?>
