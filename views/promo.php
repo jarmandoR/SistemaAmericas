@@ -117,6 +117,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <input type="number" class="form-control" id="prioridad" name="prioridad" min="0" value="0">
                     </div>
 
+                    <div class="col-12">
+                        <label for="producto_busqueda" class="form-label fw-medium">Producto base</label>
+                        <div class="position-relative">
+                            <input type="text" class="form-control" id="producto_busqueda"
+                                   placeholder="Escribe codigo o nombre del producto" autocomplete="off">
+                            <div id="producto-sugerencias" class="producto-sugerencias" style="display: none;"></div>
+                        </div>
+                    </div>
+
                     <div class="col-md-4">
                         <label for="precio_unidad_producto" class="form-label fw-medium">Precio Unidad</label>
                         <input type="number" class="form-control" id="precio_unidad_producto" name="precio_unidad_producto" min="0" value="0">
@@ -202,12 +211,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Promoción</th>
-                            <th>Código</th>
+                            <th>Titulo</th>
+                            <th>Codigo</th>
+                            <th>Precio Unidad</th>
                             <th>Precio Paca</th>
+                            <th>Venta Unidad</th>
+                            <th>Prioridad</th>
                             <th>Fecha</th>
                             <th>Estado</th>
-                            <th>Descripción</th>
+                            <th>Descripcion</th>
                             <th>Imagen</th>
                             <th>Acciones</th>
                         </tr>
@@ -288,6 +300,8 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(resetPromoForm, 0);
     });
 
+    inicializarBuscadorProductoPromo();
+
     formPromocion.addEventListener('invalid', function(e) {
         e.preventDefault();
         const label = formPromocion.querySelector(`label[for="${e.target.id}"]`);
@@ -360,6 +374,7 @@ function cargarPromociones() {
             const statusClass = String(promo.estado) === '1' ? 'status-active' : 'status-inactive';
             const estadoTexto = String(promo.estado) === '1' ? 'Activa' : 'Inactiva';
             const estadoChecked = String(promo.estado) === '1' ? 'checked' : '';
+            const ventaUnidadTexto = String(promo.acti_Unidad) === '1' ? 'Si' : 'No';
             const imagen = promo.imagen ? `../assets/img/licores/promos/${promo.imagen}` : '../assets/img/licores/placeholder.jpg';
             
             const promoJson = encodeURIComponent(JSON.stringify(promo));
@@ -368,7 +383,10 @@ function cargarPromociones() {
                     <td><span class="fw-medium">${promo.id_promocion }</span></td>
                     <td><span class="fw-medium">${promo.titulo}</span></td>
                     <td>${promo.codigo || '-'}</td>
+                    <td>$${Number(promo.precio_unidad_producto || 0).toLocaleString('es-CO')}</td>
                     <td>$${Number(promo.precio_paca_producto || 0).toLocaleString('es-CO')}</td>
+                    <td>${ventaUnidadTexto}</td>
+                    <td>${promo.prioridad || 0}</td>
                     <td>${promo.creado_en || '-'}</td>
                     <td>
                         <div class="form-check form-switch promo-status-switch">
@@ -509,6 +527,8 @@ function editarPromo(promoJson) {
     document.getElementById('precio_paca_producto').value = promo.precio_paca_producto || 0;
     document.getElementById('acti_Unidad').value = String(promo.acti_Unidad ?? '1');
     document.getElementById('descripcion').value = promo.descripcion || '';
+    document.getElementById('producto_busqueda').value = '';
+    ocultarSugerenciasProducto();
     document.getElementById('imagen').required = false;
     bootstrap.Modal.getOrCreateInstance(document.getElementById('promoModal')).show();
 }
@@ -518,6 +538,8 @@ function resetPromoForm() {
     document.getElementById('action').value = 'insert';
     document.getElementById('id').value = '';
     document.getElementById('imagen').required = true;
+    document.getElementById('producto_busqueda').value = '';
+    ocultarSugerenciasProducto();
 }
 
 function cambiarEstadoPromo(input, idPromo) {
@@ -562,6 +584,109 @@ function actualizarTextoEstado(label, estado) {
     label.textContent = estado === 1 ? 'Activa' : 'Inactiva';
     label.classList.toggle('status-active', estado === 1);
     label.classList.toggle('status-inactive', estado !== 1);
+}
+
+function inicializarBuscadorProductoPromo() {
+    const input = document.getElementById('producto_busqueda');
+    const sugerencias = document.getElementById('producto-sugerencias');
+    let timeoutBusqueda = null;
+
+    if (!input || !sugerencias) {
+        return;
+    }
+
+    input.addEventListener('input', function() {
+        const termino = input.value.trim();
+        clearTimeout(timeoutBusqueda);
+
+        if (termino.length < 2) {
+            ocultarSugerenciasProducto();
+            return;
+        }
+
+        timeoutBusqueda = setTimeout(() => {
+            buscarProductosPromo(termino);
+        }, 250);
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!input.contains(e.target) && !sugerencias.contains(e.target)) {
+            ocultarSugerenciasProducto();
+        }
+    });
+}
+
+function buscarProductosPromo(termino) {
+    const sugerencias = document.getElementById('producto-sugerencias');
+    const formData = new FormData();
+    formData.append('action', 'buscarProductos');
+    formData.append('termino', termino);
+
+    sugerencias.innerHTML = '<div class="producto-sugerencia-empty">Buscando...</div>';
+    sugerencias.style.display = 'block';
+
+    fetch('../controllers/promoController.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(parseJsonResponse)
+    .then(data => {
+        const productos = data.productos || [];
+
+        if (!productos.length) {
+            sugerencias.innerHTML = '<div class="producto-sugerencia-empty">No hay coincidencias</div>';
+            return;
+        }
+
+        sugerencias.innerHTML = productos.map(producto => `
+            <button type="button" class="producto-sugerencia-item"
+                    data-producto="${encodeURIComponent(JSON.stringify(producto))}">
+                <span class="producto-sugerencia-nombre">${escapeHtml(producto.descripcion_producto || '')}</span>
+                <span class="producto-sugerencia-meta">
+                    Codigo: ${escapeHtml(producto.codigo_productos || '')} ·
+                    Unidad: $${Number(producto.precio_unidad_producto || 0).toLocaleString('es-CO')} ·
+                    Paca: $${Number(producto.precio_paca_producto || 0).toLocaleString('es-CO')}
+                </span>
+            </button>
+        `).join('');
+
+        sugerencias.querySelectorAll('.producto-sugerencia-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const producto = JSON.parse(decodeURIComponent(this.dataset.producto));
+                seleccionarProductoPromo(producto);
+            });
+        });
+    })
+    .catch(error => {
+        console.error('Error buscando productos:', error);
+        sugerencias.innerHTML = '<div class="producto-sugerencia-empty">No se pudieron cargar productos</div>';
+    });
+}
+
+function seleccionarProductoPromo(producto) {
+    document.getElementById('producto_busqueda').value = producto.descripcion_producto || '';
+    document.getElementById('codigo').value = producto.codigo_productos || '';
+    document.getElementById('precio_unidad_producto').value = producto.precio_unidad_producto || 0;
+    document.getElementById('precio_paca_producto').value = producto.precio_paca_producto || 0;
+    document.getElementById('acti_Unidad').value = String(producto.acti_Unidad ?? '1');
+    ocultarSugerenciasProducto();
+}
+
+function ocultarSugerenciasProducto() {
+    const sugerencias = document.getElementById('producto-sugerencias');
+    if (sugerencias) {
+        sugerencias.innerHTML = '';
+        sugerencias.style.display = 'none';
+    }
+}
+
+function escapeHtml(value) {
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }
 
 function enviarPromoDesdeJson(promoJson) {
@@ -753,6 +878,54 @@ body {
 
 .emoji-picker .emoji:hover {
     background-color: #f1f5f9;
+}
+
+.producto-sugerencias {
+    position: absolute;
+    top: calc(100% + 0.25rem);
+    left: 0;
+    right: 0;
+    z-index: 1060;
+    max-height: 260px;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    box-shadow: 0 12px 30px rgb(15 23 42 / 0.16);
+}
+
+.producto-sugerencia-item {
+    width: 100%;
+    border: 0;
+    border-bottom: 1px solid #eef2f7;
+    background: white;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    cursor: pointer;
+}
+
+.producto-sugerencia-item:hover,
+.producto-sugerencia-item:focus {
+    background: #f8fafc;
+    outline: none;
+}
+
+.producto-sugerencia-nombre {
+    font-weight: 600;
+    color: #111827;
+}
+
+.producto-sugerencia-meta,
+.producto-sugerencia-empty {
+    color: var(--secondary-color);
+    font-size: 0.875rem;
+}
+
+.producto-sugerencia-empty {
+    padding: 0.75rem 1rem;
 }
 
 .table-modern {

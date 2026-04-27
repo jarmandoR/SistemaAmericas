@@ -186,6 +186,31 @@ class Producto
         return $query->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function buscarProductosParaPromo($termino)
+    {
+        $query = $this->pdo->prepare("
+            SELECT
+                id_producto,
+                codigo_productos,
+                descripcion_producto,
+                precio_unidad_producto,
+                precio_paca_producto,
+                acti_Unidad
+            FROM productos
+            WHERE estado_producto = '1'
+              AND (
+                  descripcion_producto LIKE :termino
+                  OR codigo_productos LIKE :termino
+              )
+            ORDER BY descripcion_producto
+            LIMIT 15
+        ");
+        $query->bindValue(':termino', '%' . $termino . '%');
+        $query->execute();
+
+        return $query->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     /**
      * Verificar si existe un producto por ID
      */

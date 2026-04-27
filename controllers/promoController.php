@@ -1,5 +1,6 @@
 <?php
 require_once "../models/Promo.php";
+require_once "../models/ProductoModel.php";
 
 function responderJson($success, $message = "", $extra = []) {
     if (ob_get_length()) {
@@ -148,6 +149,17 @@ try {
 
     if ($metodo === "mostrar") {
         responderJson(true, "", ["promociones" => $promo->getAllPromos()]);
+    }
+
+    if ($metodo === "buscarProductos") {
+        $termino = trim($_POST["termino"] ?? "");
+
+        if (strlen($termino) < 2) {
+            responderJson(true, "", ["productos" => []]);
+        }
+
+        $producto = new Producto();
+        responderJson(true, "", ["productos" => $producto->buscarProductosParaPromo($termino)]);
     }
 
     if ($metodo === "enviarPromo") {
