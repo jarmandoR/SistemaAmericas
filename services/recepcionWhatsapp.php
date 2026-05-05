@@ -9,18 +9,33 @@ function write_log($contenido) {
     file_put_contents("log_webhook.txt", "[$fechatiempo] $contenido\n", FILE_APPEND);
 }
 
-function clienteTieneRegistro($conn, $telefonoCliente) {
-    $stmt = $conn->prepare("SELECT COUNT(id) AS cantidad FROM registro WHERE telefono_wa = ?");
+function clienteAutorizoDatos($conn, $telefonoCliente) {
+    $stmt = $conn->prepare("
+        SELECT COUNT(id) AS cantidad
+        FROM registro
+        WHERE telefono_wa = ?
+            AND (
+                LOWER(mensaje_recibido) LIKE '%acepto%'
+                OR LOWER(mensaje_recibido) LIKE '%autorizo%'
+                OR LOWER(mensaje_recibido) LIKE '%si autorizo%'
+                OR LOWER(mensaje_recibido) LIKE '%sí autorizo%'
+                OR LOWER(mensaje_recibido) LIKE '%estoy de acuerdo%'
+                OR LOWER(mensaje_recibido) LIKE '%de acuerdo%'
+                OR LOWER(mensaje_recibido) LIKE '%confirmo%'
+            )
+            AND LOWER(mensaje_recibido) NOT LIKE '%no acepto%'
+            AND LOWER(mensaje_recibido) NOT LIKE '%no autorizo%'
+    ");
     if (!$stmt) {
-        write_log("Error preparando consulta de historial: " . $conn->error);
-        return true;
+        write_log("Error preparando consulta de autorizacion: " . $conn->error);
+        return false;
     }
 
     $stmt->bind_param("s", $telefonoCliente);
     if (!$stmt->execute()) {
-        write_log("Error consultando historial del cliente: " . $stmt->error);
+        write_log("Error consultando autorizacion del cliente: " . $stmt->error);
         $stmt->close();
-        return true;
+        return false;
     }
 
     $cantidad = 0;
@@ -31,21 +46,47 @@ function clienteTieneRegistro($conn, $telefonoCliente) {
     return ((int) $cantidad) > 0;
 }
 
+function mensajeAceptaTratamientoDatos($mensaje) {
+    $mensajeNormalizado = strtolower(trim($mensaje));
+
+    if (strpos($mensajeNormalizado, 'no acepto') !== false || strpos($mensajeNormalizado, 'no autorizo') !== false) {
+        return false;
+    }
+
+    $patronesAceptacion = [
+        'acepto',
+        'autorizo',
+        'si autorizo',
+        'sí autorizo',
+        'estoy de acuerdo',
+        'de acuerdo',
+        'confirmo'
+    ];
+
+    foreach ($patronesAceptacion as $patron) {
+        if (strpos($mensajeNormalizado, $patron) !== false) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 function construirMensajeAutorizacion() {
-    return "Hola, bienvenido a Edmar Americas.\n\n"
-        . "Para atender tu solicitud por este canal necesitamos tu autorizacion para tratar tus datos personales, como tu numero de telefono, nombre, direccion y la informacion necesaria para gestionar pedidos, entregas, soporte y comunicaciones relacionadas con nuestro servicio.\n\n"
-        . "Puedes consultar nuestra politica de privacidad aqui:\n"
+    return "Hola! Bienvenido a Edmar Americas 🛒✨\n\n"
+        . "Para atenderte por este canal necesitamos tu autorizacion para tratar tus datos personales, como tu numero de telefono, nombre, direccion y la informacion necesaria para gestionar pedidos, entregas, soporte y comunicaciones relacionadas con nuestro servicio. 🔐\n\n"
+        . "Puedes consultar nuestra politica de privacidad aqui: 📄\n"
         . "https://edmaramericas.com/sistema/views/politicas-privacidad.php\n\n"
-        . "Si estas de acuerdo, responde a este chat y con gusto continuamos con tu atencion.";
+        . "Si estas de acuerdo, responde *ACEPTO* ✅ y con gusto continuamos con tu atencion.";
 }
 
 function construirMensajePrincipal($link) {
-    return "Bienvenido a Edmar Americas.\n\n"
-        . "Encuentra licores, cervezas, bebidas, mezcladores, snacks y otros productos para tu negocio, reunion o celebracion.\n\n"
-        . "Ver catalogo y comprar ahora:\n"
-        . "$link\n\n"
-        . "Necesitas ayuda o mas informacion?\n"
-        . "Escribenos por WhatsApp al 3107647676 y uno de nuestros asesores te atendera.";
+    return "Bienvenido a Edmar Americas! 🛒✨\n\n"
+        . "Tenemos licores 🍷, cervezas 🍺, bebidas 🥤, mezcladores, snacks 🍟 y muchos mas productos para tu negocio, reunion o celebracion.\n\n"
+        . "Haz tu pedido facil y rapido aqui: 🚚\n"
+        . "👉 $link\n\n"
+        . "Necesitas ayuda o mas informacion? 💬\n"
+        . "Escribenos por WhatsApp al 3107647676 y uno de nuestros asesores te atendera con gusto. ✅";
 }
 
 // VALIDAR WEBHOOK
@@ -90,7 +131,7 @@ write_log("Mensaje recibido de $telefonoCliente: $mensaje");
 
 if ($mensaje != null) {
     $link = "https://edmaramericas.com/sistema/views/categorias.php?idCli=$telefonoCliente";
-    $respuestaTexto = clienteTieneRegistro($conn, $telefonoCliente)
+    $respuestaTexto = (clienteAutorizoDatos($conn, $telefonoCliente) || mensajeAceptaTratamientoDatos($mensaje))
         ? construirMensajePrincipal($link)
         : construirMensajeAutorizacion();
 
