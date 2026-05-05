@@ -49,20 +49,26 @@ class WhatsappSender {
             }elseif ($tipo==2) {
                 $mensaje = json_encode([
                     "messaging_product" => "whatsapp",
+                    "recipient_type" => "individual",
                     "to" => $telefonoCliente,
                     "type" => "interactive",
                     "interactive" => [
-                        "type" => "button",
+                        "type" => "cta_url",
+                        "header" => [
+                            "type" => "text",
+                            "text" => "Edmar Americas"
+                        ],
                         "body" => [
-                            "text" => $enviado // tu texto principal
+                            "text" => $enviado
+                        ],
+                        "footer" => [
+                            "text" => "Compra facil y rapido por WhatsApp"
                         ],
                         "action" => [
-                            "buttons" => [
-                                [
-                                    "type" => "url",
-                                    "url" => "$link", // cambia esto por tu enlace real
-                                    "text" => "Ir a Validar Pagos"
-                                ]
+                            "name" => "cta_url",
+                            "parameters" => [
+                                "display_text" => "Ver catalogo",
+                                "url" => $link
                             ]
                         ]
                     ]

@@ -83,8 +83,7 @@ function construirMensajeAutorizacion() {
 function construirMensajePrincipal($link) {
     return "Bienvenido a Edmar Americas! 🛒✨\n\n"
         . "Tenemos licores 🍷, cervezas 🍺, bebidas 🥤, mezcladores, snacks 🍟 y muchos mas productos para tu negocio, reunion o celebracion.\n\n"
-        . "Haz tu pedido facil y rapido aqui: 🚚\n"
-        . "👉 $link\n\n"
+        . "Haz tu pedido facil y rapido tocando el boton de abajo. 🚚\n\n"
         . "Necesitas ayuda o mas informacion? 💬\n"
         . "Escribenos por WhatsApp al 3107647676 y uno de nuestros asesores te atendera con gusto. ✅";
 }
@@ -131,10 +130,12 @@ write_log("Mensaje recibido de $telefonoCliente: $mensaje");
 
 if ($mensaje != null) {
     $link = "https://edmaramericas.com/sistema/views/categorias.php?idCli=$telefonoCliente";
-    $respuestaTexto = (clienteAutorizoDatos($conn, $telefonoCliente) || mensajeAceptaTratamientoDatos($mensaje))
+    $puedeVerCatalogo = clienteAutorizoDatos($conn, $telefonoCliente) || mensajeAceptaTratamientoDatos($mensaje);
+    $respuestaTexto = $puedeVerCatalogo
         ? construirMensajePrincipal($link)
         : construirMensajeAutorizacion();
+    $tipoMensaje = $puedeVerCatalogo ? 2 : 1;
 
-    $sender->enviar($mensaje, $respuestaTexto, $id, $timestamp, $telefonoCliente, $link, 1);
+    $sender->enviar($mensaje, $respuestaTexto, $id, $timestamp, $telefonoCliente, $link, $tipoMensaje);
     write_log("Mensaje de respuesta enviado a $telefonoCliente");
 }
