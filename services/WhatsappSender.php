@@ -31,7 +31,7 @@ class WhatsappSender {
 
         if ($cantidad == 0) {
             $token = 'EAAhhlSyrHkMBOxLZBq1IkxTs3A8O1yUJWOtk58j0BUv7eUHemP3P6lzWRUE9LohfAqdC9um6yjihIsof6ZARhb1ZBlJ7YZC0E0j4LAWHr77DkLD50KaKVPqGjwazQ6FJ8JRolfZBGtrdAAx8ZAVZCoDMi7uLZBgddffFCKKLx7mrfjck6P0P27wFbn1ewwqUkwpkkAZDZD';
-            $telefonoID = '599178349953891';
+            $telefonoID = '1070243702840317';
             $url = 'https://graph.facebook.com/v22.0/' . $telefonoID . '/messages';
 
             if ($tipo==1) {
