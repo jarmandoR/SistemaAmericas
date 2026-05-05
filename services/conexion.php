@@ -6,8 +6,10 @@
 
 
 $servername = "localhost";
-$username = "u633742531_Multilicores25";
-$password = "Multilicores2025";
-$dbname = "u633742531_Multilicores";
+$username = "u885436177_americas";
+$password = "Americas2O2G";
+$dbname = "u885436177_americas";
+
+
 // Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
