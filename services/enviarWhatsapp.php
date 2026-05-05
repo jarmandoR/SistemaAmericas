@@ -18,6 +18,7 @@ if (in_array($origin, $allowed_origins)) {
 // Otros encabezados CORS
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
+header("Content-Type: application/json");
 
 // Manejar solicitudes preflight (OPTIONS)
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -420,7 +421,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $token = 'EAAhhlSyrHkMBOxLZBq1IkxTs3A8O1yUJWOtk58j0BUv7eUHemP3P6lzWRUE9LohfAqdC9um6yjihIsof6ZARhb1ZBlJ7YZC0E0j4LAWHr77DkLD50KaKVPqGjwazQ6FJ8JRolfZBGtrdAAx8ZAVZCoDMi7uLZBgddffFCKKLx7mrfjck6P0P27wFbn1ewwqUkwpkkAZDZD';
 
         // IDENTIFICADOR DE NÚMERO DE TELÉFONO
-         $telefonoID = '599178349953891';
+         $telefonoID = '1070243702840317';
         // $telefonoID = '430240436843311';
 
         // URL A DONDE SE MANDARÁ EL MENSAJE
@@ -438,8 +439,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         curl_setopt($curl, CURLOPT_HTTPHEADER, $header);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 
-        // Ejecutar la solicitud y obtener la respuesta
-        $response = json_decode(curl_exec($curl), true);
+        // Ejecutar la solicitud y obtener exactamente la respuesta de Meta
+        $response = curl_exec($curl);
+        $curl_error = curl_error($curl);
 
         // Obtener el código de respuesta HTTP
         $status_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
@@ -455,10 +457,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Mostrar la fecha y hora
         // echo "Fecha y hora actual en Colombia: " . $fechaHoraColombia;
-        $response_str = print_r($response, true);
+        // Devolver al cliente el mismo estado y cuerpo que respondio Meta.
         // Verificar el resultado del envío
-        if ($status_code == 200) {
-            echo json_encode(['success' => 'Mensaje enviado con éxito ']);
+        if ($response !== false) {
+            http_response_code($status_code);
+            echo $response;
             // file_put_contents('alertas_log.txt', "Mensaje tipo ".$tipo_alerta." para telefono ".$telefonoCliente." guia numero ".$numeroGuia." fecha ".$fechaHoraColombia." \n", FILE_APPEND);
             
             // $servername = "localhost";
@@ -478,7 +481,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             // file_put_contents('alertas_log.txt', "Mensaje tipo ".$tipo_alerta." para telefono ".$telefonoCliente." guia numero ".$numeroGuia." fecha ".$fechaHoraColombia." \n Error al enviar el mensaje', 'status_code' => $status_code"." NO ENVIADO ", FILE_APPEND);
 
-            echo json_encode(['error' => 'Error al enviar el mensaje', 'status_code' => $status_code]);
+            http_response_code(500);
+            echo json_encode([
+                'error' => 'No se pudo conectar con Meta',
+                'curl_error' => $curl_error
+            ]);
         }
 
 
