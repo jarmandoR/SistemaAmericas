@@ -9,6 +9,45 @@ function write_log($contenido) {
     file_put_contents("log_webhook.txt", "[$fechatiempo] $contenido\n", FILE_APPEND);
 }
 
+function clienteTieneRegistro($conn, $telefonoCliente) {
+    $stmt = $conn->prepare("SELECT COUNT(id) AS cantidad FROM registro WHERE telefono_wa = ?");
+    if (!$stmt) {
+        write_log("Error preparando consulta de historial: " . $conn->error);
+        return true;
+    }
+
+    $stmt->bind_param("s", $telefonoCliente);
+    if (!$stmt->execute()) {
+        write_log("Error consultando historial del cliente: " . $stmt->error);
+        $stmt->close();
+        return true;
+    }
+
+    $cantidad = 0;
+    $stmt->bind_result($cantidad);
+    $stmt->fetch();
+    $stmt->close();
+
+    return ((int) $cantidad) > 0;
+}
+
+function construirMensajeAutorizacion() {
+    return "Hola, bienvenido a Edmar Americas.\n\n"
+        . "Para atender tu solicitud por este canal necesitamos tu autorizacion para tratar tus datos personales, como tu numero de telefono, nombre, direccion y la informacion necesaria para gestionar pedidos, entregas, soporte y comunicaciones relacionadas con nuestro servicio.\n\n"
+        . "Puedes consultar nuestra politica de privacidad aqui:\n"
+        . "https://edmaramericas.com/sistema/views/politicas-privacidad.php\n\n"
+        . "Si estas de acuerdo, responde a este chat y con gusto continuamos con tu atencion.";
+}
+
+function construirMensajePrincipal($link) {
+    return "Bienvenido a Edmar Americas.\n\n"
+        . "Encuentra licores, cervezas, bebidas, mezcladores, snacks y otros productos para tu negocio, reunion o celebracion.\n\n"
+        . "Ver catalogo y comprar ahora:\n"
+        . "$link\n\n"
+        . "Necesitas ayuda o mas informacion?\n"
+        . "Escribenos por WhatsApp al 3107647676 y uno de nuestros asesores te atendera.";
+}
+
 // VALIDAR WEBHOOK
 $token = 'Multilicoreslicor25';
 if (isset($_GET['hub_verify_token']) && $_GET['hub_verify_token'] === $token) {
@@ -26,7 +65,7 @@ write_log("Entrada RAW: " . $inputRaw);
 
 // Validar si el mensaje es de texto
 if (!isset($respuesta['entry'][0]['changes'][0]['value']['messages'])) {
-    write_log("No es un mensaje entrante válido.");
+    write_log("No es un mensaje entrante valido.");
     exit;
 }
 
@@ -50,27 +89,11 @@ $sender = new WhatsappSender($conn);
 write_log("Mensaje recibido de $telefonoCliente: $mensaje");
 
 if ($mensaje != null) {
-    $link="https://edmaramericas.com/sistema/views/categorias.php?idCli=$telefonoCliente";
-    $respuestaTexto = "    
-        🍷 ¡Bienvenido a Edmar Americas!
-Tu experiencia en licores comienza aquí.
-Haz tu pedido en segundos y recíbelo sin complicaciones. 🚚💨
-📲 Ver catálogo y comprar ahora:
-👉 $link
+    $link = "https://edmaramericas.com/sistema/views/categorias.php?idCli=$telefonoCliente";
+    $respuestaTexto = clienteTieneRegistro($conn, $telefonoCliente)
+        ? construirMensajePrincipal($link)
+        : construirMensajeAutorizacion();
 
-¿Necesitas ayuda o más información?
-📞 Escríbenos por WhatsApp al 3107647676 y uno de nuestros asesores estará encantado de atenderte.
-
-🥂 ¡Salud por las buenas decisiones!";
-
-            
-
-    $sender->enviar($mensaje, $respuestaTexto, $id, $timestamp, $telefonoCliente,$link,1);
+    $sender->enviar($mensaje, $respuestaTexto, $id, $timestamp, $telefonoCliente, $link, 1);
     write_log("Mensaje de respuesta enviado a $telefonoCliente");
 }
-
-
-
-    
-
-
