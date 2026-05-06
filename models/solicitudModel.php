@@ -287,7 +287,7 @@ class solicitud
     }
     public function enviarPromo($idPromo, $descripcion, $imagen, $telefono, $plantilla): array
     {
-        $url = "https://multilicoreschapinero.com/sistema/services/enviarWhatsapp.php";
+        $url = "https://edmaramericas.com/sistema/services/enviarWhatsapp.php";
 
         $data = [
             'telefono' => $telefono,
