@@ -447,8 +447,8 @@ function inicializarTablaPromos() {
         language: {
             decimal: '',
             emptyTable: 'No hay promociones registradas',
-            info: 'Mostrando _START_ a _END_ de _TOTAL_ promociones',
-            infoEmpty: 'Mostrando 0 a 0 de 0 promociones',
+            info: '_START_ - _END_ de _TOTAL_ promociones',
+            infoEmpty: '0 promociones',
             infoFiltered: '(filtrado de _MAX_ promociones en total)',
             lengthMenu: 'Mostrar _MENU_ promociones',
             loadingRecords: 'Cargando...',
@@ -456,10 +456,10 @@ function inicializarTablaPromos() {
             search: 'Buscar:',
             zeroRecords: 'No se encontraron promociones',
             paginate: {
-                first: 'Primero',
-                last: 'Ultimo',
-                next: 'Siguiente',
-                previous: 'Anterior'
+                first: '<i class="fas fa-angles-left" aria-hidden="true"></i>',
+                last: '<i class="fas fa-angles-right" aria-hidden="true"></i>',
+                next: '<i class="fas fa-chevron-right" aria-hidden="true"></i>',
+                previous: '<i class="fas fa-chevron-left" aria-hidden="true"></i>'
             }
         }
     });
@@ -939,6 +939,50 @@ body {
     padding: 1rem;
 }
 
+.dataTables_wrapper .dataTables_info {
+    color: #64748b;
+    font-size: 0.875rem;
+    padding-top: 0.65rem;
+}
+
+.dataTables_wrapper .dataTables_paginate {
+    padding-top: 0.45rem;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.page-item {
+    margin: 0 0.125rem;
+}
+
+.dataTables_wrapper .dataTables_paginate .page-link {
+    min-width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    border-color: #e2e8f0;
+    box-shadow: none;
+}
+
+.dataTables_wrapper .dataTables_paginate .page-link:hover {
+    color: var(--primary-color);
+    background: #eff6ff;
+    border-color: #bfdbfe;
+}
+
+.dataTables_wrapper .dataTables_paginate .page-item.active .page-link {
+    background: #009688;
+    border-color: #009688;
+    color: white;
+}
+
+.dataTables_wrapper .dataTables_paginate .page-item.disabled .page-link {
+    color: #cbd5e1;
+    background: #f8fafc;
+}
+
 .dataTables_wrapper .dataTables_length select,
 .dataTables_wrapper .dataTables_filter input {
     border: 1px solid #d1d5db;
@@ -961,11 +1005,17 @@ body {
 #tabla-promos thead th a,
 #tabla-promos thead th span,
 #tabla-promos thead .dt-column-title {
-    color: #1f2937 !important;
+    color: white !important;
 }
 
 #tabla-promos thead {
-    background: #f8fafc !important;
+    background: var(--primary-color) !important;
+}
+
+#tabla-promos thead th {
+    background: var(--primary-color) !important;
+    border-top: none;
+    border-bottom: none;
 }
 
 .table-modern td {

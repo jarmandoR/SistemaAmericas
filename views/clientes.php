@@ -16,7 +16,7 @@ $offset = ($pagina - 1) * $limite;
 $totalClientes = $bar->contarTotalClientes();
 $totalPaginas = ceil($totalClientes / $limite);
 
-$clientes = $bar->obtenerClientesPaginado($limite, $offset);
+$clientes = $bar->obtenerClientes();
 $errores = []; // 🔸 Inicializamos el arreglo de errores
 
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["action"] === "insert") {
@@ -101,10 +101,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["
 ?>
 
 <!-- Page header -->
-<div class="full-box page-header">
-    <h3 class="text-left">
-        <i class="fas fa-user-tie fa-fw"></i> &nbsp; CLIENTES
-    </h3>
+<div class="module-header">
+    <div class="d-flex align-items-center">
+        <i class="fas fa-user-tie fa-2x mr-3"></i>
+        <div>
+            <h1 class="mb-1 font-weight-bold">Gestión de Clientes</h1>
+            <p class="mb-0 opacity-90">Administra clientes, bares, zonas y datos comerciales</p>
+        </div>
+    </div>
+</div>
+<div style="display: none;">
     <p class="text-justify">
         Nota: Tenga en cuenta que la información registrada será utilizada para todas las operaciones comerciales. Complete todos los campos con información precisa y actualizada.
     </p>
@@ -139,14 +145,26 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["
 
 <!-- Content here-->
 <div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
+    <div class="d-flex justify-content-end mb-4">
+        <button type="button" class="btn btn-modern btn-primary-modern" data-toggle="modal" data-target="#clienteModal">
+            <i class="fas fa-plus-circle mr-2"></i>Agregar cliente
+        </button>
+    </div>
+</div>
 
-                <div class="card-header">
-                    <h5 class="card-title"><i class="fas fa-plus"></i> &nbsp; Nuevo Cliente</h5>
+<div class="modal fade" id="clienteModal" tabindex="-1" role="dialog" aria-labelledby="clienteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-content modern-modal-content">
+            <div class="modal-header">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-user-plus text-primary mr-2"></i>
+                    <h5 class="modal-title mb-0 font-weight-bold" id="clienteModalLabel">Nuevo Cliente</h5>
                 </div>
-                <div class="card-body">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-4">
                     <form action="" method="POST" class="form-neon" autocomplete="off">
                         <input type="hidden" name="action" value="insert">
                         <fieldset>
@@ -200,13 +218,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["
                                 </div>
                             </div>
                         </fieldset>
-                        <p class="text-center" style="margin-top: 40px;">
-                            <button type="reset" class="btn btn-raised btn-secondary btn-sm"><i class="fas fa-paint-roller"></i> &nbsp; LIMPIAR</button>
-                            &nbsp; &nbsp;
-                            <button type="submit" class="btn btn-raised btn-info btn-sm"><i class="far fa-save"></i> &nbsp; GUARDAR</button>
+                        <p class="text-center border-top pt-3" style="margin-top: 28px;">
+                            <button type="reset" class="btn btn-modern btn-outline-modern"><i class="fas fa-undo mr-2"></i>Limpiar</button>
+                            <button type="submit" class="btn btn-modern btn-primary-modern ml-2"><i class="far fa-save mr-2"></i>Guardar cliente</button>
                         </p>
                     </form>
-                </div>
             </div>
         </div>
     </div>
@@ -217,13 +233,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title"><i class="fas fa-list"></i> &nbsp; Lista de Clientes</h5>
+            <div class="modern-card">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0 font-weight-bold"><i class="fas fa-list text-primary"></i> &nbsp; Lista de Clientes</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-dark table-sm">
+                        <table class="table table-modern table-sm mb-0" id="tabla-clientes">
                             <thead>
                                 <tr class="text-center roboto-medium">
                                     <th>#</th>
@@ -239,7 +255,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["
                             <tbody>
                                 <?php foreach ($clientes as $index => $cliente): ?>
                                     <tr class="text-center">
-                                        <td><?= $index + 1 ?></td>
+                                        <td><?= htmlspecialchars($cliente['id_cliente']) ?></td>
                                         <td><?= htmlspecialchars($cliente['nombre_bar']) ?></td>
                                         <td><?= htmlspecialchars($cliente['cli_nombre']) ?></td>
                                         <td><?= htmlspecialchars($cliente['cli_telefono']) ?></td>
@@ -248,19 +264,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["
                                         <td><?= date('d/m/Y', strtotime($cliente['cli_fecha_registro'])) ?></td>
                                         <td>
                                             <button type="button"
-                                                class="btn btn-success btn-sm mr-1 edit-btn"
+                                                class="btn btn-outline-primary btn-sm mr-1 rounded-action edit-btn"
                                                 data-toggle="modal"
                                                 data-target="#editModal"
-                                                data-id="<?= $cliente['id_cliente'] ?>"
-                                                data-nombre="<?= $cliente['cli_nombre'] ?>"
-                                                data-telefono="<?= $cliente['cli_telefono'] ?>"
-                                                data-direccion="<?= $cliente['cli_direccion'] ?>"
-                                                data-zona="<?= $cliente['cli_zona'] ?>"
-                                                data-bar="<?= $cliente['cli_Bar'] ?>"
+                                                data-id="<?= htmlspecialchars($cliente['id_cliente'], ENT_QUOTES, 'UTF-8') ?>"
+                                                data-nombre="<?= htmlspecialchars($cliente['cli_nombre'], ENT_QUOTES, 'UTF-8') ?>"
+                                                data-telefono="<?= htmlspecialchars($cliente['cli_telefono'], ENT_QUOTES, 'UTF-8') ?>"
+                                                data-direccion="<?= htmlspecialchars($cliente['cli_direccion'], ENT_QUOTES, 'UTF-8') ?>"
+                                                data-zona="<?= htmlspecialchars($cliente['cli_zona'], ENT_QUOTES, 'UTF-8') ?>"
+                                                data-bar="<?= htmlspecialchars($cliente['cli_Bar'], ENT_QUOTES, 'UTF-8') ?>"
                                                 title="Editar">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                            <button type="button" class="btn btn-danger btn-sm delete-btn" data-id="<?= $cliente['id_cliente'] ?>" title="Eliminar">
+                                            <button type="button" class="btn btn-outline-danger btn-sm delete-btn rounded-action" data-id="<?= htmlspecialchars($cliente['id_cliente'], ENT_QUOTES, 'UTF-8') ?>" title="Eliminar">
                                                 <i class="fas fa-trash-alt"></i>
                                             </button>
                                         </td>
@@ -271,25 +287,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["
                         </table>
                     </div>
                 </div>
-                <div class="card-footer">
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination justify-content-center">
-                            <li class="page-item <?= $pagina <= 1 ? 'disabled' : '' ?>">
-                                <a class="page-link" href="?pagina=<?= $pagina - 1 ?>">Anterior</a>
-                            </li>
-
-                            <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
-                                <li class="page-item <?= $pagina == $i ? 'active' : '' ?>">
-                                    <a class="page-link" href="?pagina=<?= $i ?>"><?= $i ?></a>
-                                </li>
-                            <?php endfor; ?>
-
-                            <li class="page-item <?= $pagina >= $totalPaginas ? 'disabled' : '' ?>">
-                                <a class="page-link" href="?pagina=<?= $pagina + 1 ?>">Siguiente</a>
-                            </li>
-                        </ul>
-                    </nav>
-                </div>
             </div>
         </div>
     </div>
@@ -298,7 +295,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["
 <!-- Modal para confirmación de eliminación -->
 <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
-        <div class="modal-content">
+        <div class="modal-content modern-modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="deleteModalLabel">Confirmar eliminación</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -309,7 +306,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["
                 ¿Está seguro de que desea eliminar este cliente? Esta acción no se puede deshacer y puede afectar a registros relacionados.
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-modern btn-outline-modern" data-dismiss="modal">Cancelar</button>
                 <form id="delete-form" method="POST" action="">
                     <input type="hidden" name="action" value="delete">
                     <input type="hidden" name="cliente_id" id="cliente_id" value="">
@@ -321,7 +318,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["
 </div>
 <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
-        <form method="POST" class="modal-content">
+        <form method="POST" class="modal-content modern-modal-content">
             <input type="hidden" name="action" value="update">
             <input type="hidden" name="id_cliente" id="edit_id_cliente">
 
@@ -356,15 +353,161 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                <button type="button" class="btn btn-modern btn-outline-modern" data-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-modern btn-primary-modern">Guardar cambios</button>
             </div>
         </form>
     </div>
 </div>
 
+<link href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap4.min.css" rel="stylesheet">
+
 <!-- Estilos CSS para el autocompletable -->
 <style>
+    :root {
+        --primary-color: #2563eb;
+        --secondary-color: #64748b;
+        --card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    }
+
+    .module-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #3b82f6 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 2rem;
+        margin: 1rem 1.5rem 2rem;
+    }
+
+    .module-header h1 {
+        font-size: 2.25rem;
+        line-height: 1.1;
+    }
+
+    .module-header p {
+        font-size: 1rem;
+    }
+
+    .modern-card,
+    .modern-modal-content {
+        background: white;
+        border: none;
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+    }
+
+    .modern-modal-content {
+        box-shadow: 0 20px 45px rgb(15 23 42 / 0.18);
+    }
+
+    .btn-modern {
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        border: none;
+    }
+
+    .btn-primary-modern {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .btn-primary-modern:hover {
+        background: #1d4ed8;
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    .btn-outline-modern {
+        background: transparent;
+        border: 1px solid #d1d5db;
+        color: var(--secondary-color);
+    }
+
+    .btn-outline-modern:hover {
+        background: #f8fafc;
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+    }
+
+    .table-modern {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .table-modern th {
+        border: none;
+        padding: 1rem;
+        font-weight: 600;
+    }
+
+    .table-modern td {
+        border: none;
+        padding: 1rem;
+        border-top: 1px solid #f1f5f9;
+        vertical-align: middle;
+    }
+
+    #tabla-clientes thead,
+    #tabla-clientes thead th {
+        background: var(--primary-color) !important;
+        color: white !important;
+        border: none;
+    }
+
+    .rounded-action {
+        border-radius: 6px;
+        min-width: 2.25rem;
+    }
+
+    .dataTables_wrapper {
+        padding: 1rem;
+    }
+
+    .dataTables_wrapper .dataTables_info {
+        color: #64748b;
+        font-size: 0.875rem;
+        padding-top: 0.65rem;
+    }
+
+    .dataTables_wrapper .dataTables_length select,
+    .dataTables_wrapper .dataTables_filter input {
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        padding: 0.4rem 0.65rem;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .page-link {
+        min-width: 2.25rem;
+        height: 2.25rem;
+        padding: 0;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #64748b;
+        border-color: #e2e8f0;
+        box-shadow: none;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .page-link:hover {
+        color: var(--primary-color);
+        background: #eff6ff;
+        border-color: #bfdbfe;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .page-item.active .page-link {
+        background: #009688;
+        border-color: #009688;
+        color: white;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .page-item.disabled .page-link {
+        color: #cbd5e1;
+        background: #f8fafc;
+    }
+
     .autocomplete-suggestions {
         position: absolute;
         top: 100%;
@@ -400,8 +543,40 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["
     }
 </style>
 
+<script defer src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script defer src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap4.min.js"></script>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        if (window.jQuery && $.fn.DataTable) {
+            $('#tabla-clientes').DataTable({
+                pageLength: 50,
+                lengthMenu: [[50, 100, 200, -1], [50, 100, 200, 'Todos']],
+                order: [[0, 'desc']],
+                columnDefs: [
+                    { targets: 7, orderable: false, searchable: false }
+                ],
+                language: {
+                    decimal: '',
+                    emptyTable: 'No hay clientes registrados',
+                    info: '_START_ - _END_ de _TOTAL_ clientes',
+                    infoEmpty: '0 clientes',
+                    infoFiltered: '(filtrado de _MAX_ clientes en total)',
+                    lengthMenu: 'Mostrar _MENU_ clientes',
+                    loadingRecords: 'Cargando...',
+                    processing: 'Procesando...',
+                    search: 'Buscar:',
+                    zeroRecords: 'No se encontraron clientes',
+                    paginate: {
+                        first: '<i class="fas fa-angle-double-left" aria-hidden="true"></i>',
+                        last: '<i class="fas fa-angle-double-right" aria-hidden="true"></i>',
+                        next: '<i class="fas fa-chevron-right" aria-hidden="true"></i>',
+                        previous: '<i class="fas fa-chevron-left" aria-hidden="true"></i>'
+                    }
+                }
+            });
+        }
+
         const clienteNombreInput = document.getElementById('nombre_bar');
         const barIdInput = document.getElementById('bar_id');
         const autocompleteList = document.getElementById('autocomplete-list');

@@ -140,7 +140,7 @@ class Bar
     public function obtenerClientes()
     {
         $query = $this->pdo->prepare("
-        SELECT  C.id_cliente, C.cli_nombre, C.cli_telefono, C.cli_direccion, C.cli_zona, C.cli_fecha_registro, B.nombre_bar
+        SELECT  C.id_cliente, C.cli_Bar, C.cli_nombre, C.cli_telefono, C.cli_direccion, C.cli_zona, C.cli_fecha_registro, B.nombre_bar
             FROM 
                 clientes C
             INNER JOIN 

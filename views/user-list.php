@@ -33,14 +33,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     if (empty($nombre)) {
         $errores[] = "El nombre es obligatorio";
     }
-    if (empty($rol)) {
-        $errores[] = "Debe seleccionar un rol";
+    if (!in_array($rol, ['1', '2', '3', '4'], true)) {
+        $errores[] = "Debe seleccionar un rol valido";
     }
     
     // Si no hay errores, proceder con la inserción
     if (empty($errores)) {
         // Hashear la contraseña para seguridad
-        $password_hash = password_hash($password, PASSWORD_DEFAULT);
+        try {
+            $db = new Database();
+            $conn = $db->connect();
+
+            $stmtExiste = $conn->prepare("SELECT COUNT(*) FROM users WHERE usuario = :usuario");
+            $stmtExiste->execute([
+                "usuario" => $usuario
+            ]);
+
+            if ((int) $stmtExiste->fetchColumn() > 0) {
+                $errores[] = "Ya existe un usuario con ese nombre de usuario";
+            } else {
+                $stmt = $conn->prepare("
+                    INSERT INTO users (usuario, password, email, telefono, direccion, nombre, rol)
+                    VALUES (:usuario, :password, :email, :telefono, :direccion, :nombre, :rol)
+                ");
+                $stmt->execute([
+                    "usuario" => $usuario,
+                    "password" => $password,
+                    "email" => $email,
+                    "telefono" => $telefono,
+                    "direccion" => $direccion,
+                    "nombre" => $nombre,
+                    "rol" => $rol
+                ]);
+
+                $mensaje_exito = "El usuario ha sido registrado exitosamente";
+            }
+        } catch (PDOException $e) {
+            $errores[] = "Error al insertar: " . $e->getMessage();
+        }
         
         // Preparar la consulta SQL
         // $sql_insert = "INSERT INTO users (usuario, password, email, telefono, direccion, nombre, rol) 
@@ -57,7 +87,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         // }
         
         // Simulación (eliminar en producción)
-        $mensaje_exito = "El usuario ha sido registrado exitosamente";
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
+    $usuarioId = filter_input(INPUT_POST, 'usuario_id', FILTER_VALIDATE_INT);
+
+    if ($usuarioId) {
+        try {
+            $db = new Database();
+            $stmt = $db->connect()->prepare("DELETE FROM users WHERE id = :id");
+            $stmt->execute(["id" => $usuarioId]);
+            $mensaje_exito = "El usuario ha sido eliminado exitosamente";
+        } catch (PDOException $e) {
+            $errores[] = "Error al eliminar: " . $e->getMessage();
+        }
+    } else {
+        $errores[] = "No se pudo identificar el usuario a eliminar";
     }
 }
 
@@ -82,13 +128,26 @@ class User {
 // Crear instancia de User y obtener los usuarios
 $user = new User();
 $users = $user->getUsers();
+$rolesUsuario = [
+    0 => 'Sin rol',
+    1 => 'Administrador',
+    2 => 'Vendedor',
+    3 => 'Supervisor',
+    4 => 'Cajero'
+];
 ?>
 
 <!-- Page header -->
-<div class="full-box page-header">
-    <h3 class="text-left">
-        <i class="fas fa-user-cog fa-fw"></i> &nbsp; USUARIOS
-    </h3>
+<div class="module-header">
+    <div class="d-flex align-items-center">
+        <i class="fas fa-user-cog fa-2x mr-3"></i>
+        <div>
+            <h1 class="mb-1 font-weight-bold">Gestión de Usuarios</h1>
+            <p class="mb-0 opacity-90">Administra usuarios, roles y accesos del sistema</p>
+        </div>
+    </div>
+</div>
+<div style="display: none;">
     <p class="text-justify">
         Nota: Tenga en cuenta que los usuarios tendrán acceso al sistema según su rol asignado. Complete todos los campos obligatorios y asigne los permisos adecuados.
     </p>
@@ -120,14 +179,28 @@ $users = $user->getUsers();
 
 <!-- Formulario de inserción -->
 <div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title"><i class="fas fa-plus"></i> &nbsp; Nuevo Usuario</h5>
+    <div class="d-flex justify-content-end mb-4">
+        <button type="button" class="btn btn-modern btn-primary-modern" data-toggle="modal" data-target="#usuarioModal">
+            <i class="fas fa-plus-circle mr-2"></i>Agregar usuario
+        </button>
+    </div>
+</div>
+
+<!-- Modal de inserciÃ³n -->
+<div class="modal fade" id="usuarioModal" tabindex="-1" role="dialog" aria-labelledby="usuarioModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-content user-modal-content">
+            <div class="modal-header">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-user-plus text-primary mr-2"></i>
+                    <h5 class="modal-title mb-0 font-weight-bold" id="usuarioModalLabel">Nuevo Usuario</h5>
                 </div>
-                <div class="card-body">
-                    <form action="" method="POST" class="form-neon" autocomplete="off">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-4">
+                    <form action="" method="POST" id="form-usuario" class="form-neon" autocomplete="off">
                         <input type="hidden" name="action" value="insert">
                         
                         <fieldset>
@@ -157,10 +230,10 @@ $users = $user->getUsers();
                                             <label for="usuario_rol" class="bmd-label-floating">Rol de usuario <span class="text-danger">*</span></label>
                                             <select class="form-control" name="usuario_rol" id="usuario_rol" required>
                                                 <option value="" selected disabled>Seleccione un rol</option>
-                                                <option value="Administrador">Administrador</option>
-                                                <option value="Vendedor">Vendedor</option>
-                                                <option value="Supervisor">Supervisor</option>
-                                                <option value="Cajero">Cajero</option>
+                                                <option value="1">Administrador</option>
+                                                <option value="2">Vendedor</option>
+                                                <option value="3">Supervisor</option>
+                                                <option value="4">Cajero</option>
                                             </select>
                                         </div>
                                     </div>
@@ -168,7 +241,7 @@ $users = $user->getUsers();
                             </div>
                         </fieldset>
                         
-                        <br><br><br>
+                        <br>
                         
                         <fieldset>
                             <legend><i class="fas fa-user-lock"></i> &nbsp; Información de la cuenta</legend>
@@ -196,19 +269,18 @@ $users = $user->getUsers();
                                         <div class="form-group">
                                             <label for="usuario_password_conf" class="bmd-label-floating">Confirmar contraseña <span class="text-danger">*</span></label>
                                             <input type="password" class="form-control" name="usuario_password_conf" id="usuario_password_conf" maxlength="100" required>
+                                            <small id="password-match-feedback" class="password-feedback"></small>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </fieldset>
                         
-                        <p class="text-center" style="margin-top: 40px;">
-                            <button type="reset" class="btn btn-raised btn-secondary btn-sm"><i class="fas fa-paint-roller"></i> &nbsp; LIMPIAR</button>
-                            &nbsp; &nbsp;
-                            <button type="submit" class="btn btn-raised btn-info btn-sm"><i class="far fa-save"></i> &nbsp; GUARDAR</button>
+                        <p class="text-center border-top pt-3" style="margin-top: 28px;">
+                            <button type="reset" class="btn btn-modern btn-outline-modern"><i class="fas fa-undo mr-2"></i>Limpiar</button>
+                            <button type="submit" class="btn btn-modern btn-primary-modern ml-2" id="btn-guardar-usuario"><i class="far fa-save mr-2"></i>Guardar usuario</button>
                         </p>
                     </form>
-                </div>
             </div>
         </div>
     </div>
@@ -220,13 +292,13 @@ $users = $user->getUsers();
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title"><i class="fas fa-clipboard-list fa-fw"></i> &nbsp; LISTA DE USUARIOS</h5>
+            <div class="modern-card">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0 font-weight-bold"><i class="fas fa-clipboard-list fa-fw text-primary"></i> &nbsp; Lista de Usuarios</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-dark table-sm">
+                        <table class="table table-modern table-sm mb-0" id="tabla-usuarios">
                             <thead>
                                 <tr class="text-center roboto-medium">
                                     <th>#</th>
@@ -245,49 +317,30 @@ $users = $user->getUsers();
                                 foreach ($users as $user) { 
                             ?>
                                 <tr class="text-center">
-                                    <td><?php echo $user["id"]; ?></td>
-                                    <td><?php echo $user["usuario"]; ?></td>
-                                    <td><?php echo $user["nombre"]; ?></td>
-                                    <td><?php echo $user["telefono"] ? $user["telefono"] : 'N/A'; ?></td>
-                                    <td><?php echo $user["email"]; ?></td>
-                                    <td><?php echo $user["rol"]; ?></td>
+                                    <td><?php echo htmlspecialchars($user["id"]); ?></td>
+                                    <td><?php echo htmlspecialchars($user["usuario"]); ?></td>
+                                    <td><?php echo htmlspecialchars($user["nombre"]); ?></td>
+                                    <td><?php echo htmlspecialchars($user["telefono"] ? $user["telefono"] : 'N/A'); ?></td>
+                                    <td><?php echo htmlspecialchars($user["email"]); ?></td>
+                                    <td><?php echo htmlspecialchars($rolesUsuario[(int) $user["rol"]] ?? 'Rol ' . $user["rol"]); ?></td>
                                     <td>
-                                        <a href='user-update.php?id=<?php echo $user["id"]; ?>' class='btn btn-success'>
+                                        <a href='user-update.php?id=<?php echo $user["id"]; ?>' class='btn btn-outline-primary btn-sm rounded-action' title="Actualizar">
                                             <i class="fas fa-sync-alt"></i>    
                                         </a>
                                     </td>
                                     <td>
-                                        <button type="button" class="btn btn-warning delete-btn" data-id="<?php echo $user["id"]; ?>">
+                                        <button type="button" class="btn btn-outline-danger btn-sm delete-btn rounded-action" data-id="<?php echo $user["id"]; ?>" title="Eliminar">
                                             <i class="far fa-trash-alt"></i>
                                         </button>
                                     </td>
                                 </tr>
                             <?php 
                                 }
-                            } else {
+                            }
                             ?>
-                                <tr class="text-center">
-                                    <td colspan="8">No hay usuarios registrados</td>
-                                </tr>
-                            <?php } ?>
                             </tbody>
                         </table>
                     </div>
-                </div>
-                <div class="card-footer">
-                    <nav aria-label="Page navigation example">
-                        <ul class="pagination justify-content-center">
-                            <li class="page-item disabled">
-                                <a class="page-link" href="#" tabindex="-1">Anterior</a>
-                            </li>
-                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                            <li class="page-item"><a class="page-link" href="#">2</a></li>
-                            <li class="page-item"><a class="page-link" href="#">3</a></li>
-                            <li class="page-item">
-                                <a class="page-link" href="#">Siguiente</a>
-                            </li>
-                        </ul>
-                    </nav>
                 </div>
             </div>
         </div>
@@ -295,9 +348,184 @@ $users = $user->getUsers();
 </div>
 
 <!-- Modal para confirmación de eliminación -->
+<link href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap4.min.css" rel="stylesheet">
+<style>
+:root {
+    --primary-color: #2563eb;
+    --secondary-color: #64748b;
+    --light-bg: #f8fafc;
+    --card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+}
+
+.module-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #3b82f6 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 1rem 1.5rem 2rem;
+}
+
+.module-header h1 {
+    font-size: 2.25rem;
+    line-height: 1.1;
+}
+
+.module-header p {
+    font-size: 1rem;
+}
+
+.btn-modern {
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.btn-primary-modern {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-primary-modern:hover {
+    background: #1d4ed8;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.btn-outline-modern {
+    background: transparent;
+    border: 1px solid #d1d5db;
+    color: var(--secondary-color);
+}
+
+.btn-outline-modern:hover {
+    background: #f8fafc;
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.user-modal-content,
+.modern-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+}
+
+.user-modal-content {
+    box-shadow: 0 20px 45px rgb(15 23 42 / 0.18);
+}
+
+.table-modern {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.table-modern th {
+    border: none;
+    padding: 1rem;
+    font-weight: 600;
+}
+
+.table-modern td {
+    border: none;
+    padding: 1rem;
+    border-top: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+#tabla-usuarios thead,
+#tabla-usuarios thead th {
+    background: var(--primary-color) !important;
+    color: white !important;
+    border: none;
+}
+
+.rounded-action {
+    border-radius: 6px;
+    min-width: 2.25rem;
+}
+
+.dataTables_wrapper {
+    padding: 1rem;
+}
+
+.dataTables_wrapper .dataTables_info {
+    color: #64748b;
+    font-size: 0.875rem;
+    padding-top: 0.65rem;
+}
+
+.dataTables_wrapper .dataTables_length select,
+.dataTables_wrapper .dataTables_filter input {
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 0.4rem 0.65rem;
+}
+
+.dataTables_wrapper .dataTables_paginate .page-link {
+    min-width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    border-color: #e2e8f0;
+    box-shadow: none;
+}
+
+.dataTables_wrapper .dataTables_paginate .page-link:hover {
+    color: var(--primary-color);
+    background: #eff6ff;
+    border-color: #bfdbfe;
+}
+
+.dataTables_wrapper .dataTables_paginate .page-item.active .page-link {
+    background: #009688;
+    border-color: #009688;
+    color: white;
+}
+
+.dataTables_wrapper .dataTables_paginate .page-item.disabled .page-link {
+    color: #cbd5e1;
+    background: #f8fafc;
+}
+
+.password-feedback {
+    display: block;
+    min-height: 1.25rem;
+    margin-top: 0.35rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+}
+
+.password-feedback.is-valid {
+    color: #059669;
+}
+
+.password-feedback.is-invalid {
+    color: #dc2626;
+}
+
+#usuario_password.is-valid,
+#usuario_password_conf.is-valid {
+    border-color: #059669;
+}
+
+#usuario_password.is-invalid,
+#usuario_password_conf.is-invalid {
+    border-color: #dc2626;
+}
+</style>
+<script defer src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script defer src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap4.min.js"></script>
+
 <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
-        <div class="modal-content">
+        <div class="modal-content user-modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="deleteModalLabel">Confirmar eliminación</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -308,7 +536,7 @@ $users = $user->getUsers();
                 ¿Está seguro de que desea eliminar este usuario? Esta acción no se puede deshacer.
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-modern btn-outline-modern" data-dismiss="modal">Cancelar</button>
                 <form id="delete-form" method="POST" action="">
                     <input type="hidden" name="action" value="delete">
                     <input type="hidden" name="usuario_id" id="usuario_id" value="">
@@ -322,7 +550,89 @@ $users = $user->getUsers();
 <script>
     // Script para manejar la confirmación de eliminación
     document.addEventListener('DOMContentLoaded', function() {
+        if (window.jQuery && $.fn.DataTable) {
+            $('#tabla-usuarios').DataTable({
+                pageLength: 50,
+                lengthMenu: [[50, 100, 200, -1], [50, 100, 200, 'Todos']],
+                order: [[0, 'desc']],
+                language: {
+                    decimal: '',
+                    emptyTable: 'No hay usuarios registrados',
+                    info: '_START_ - _END_ de _TOTAL_ usuarios',
+                    infoEmpty: '0 usuarios',
+                    infoFiltered: '(filtrado de _MAX_ usuarios en total)',
+                    lengthMenu: 'Mostrar _MENU_ usuarios',
+                    loadingRecords: 'Cargando...',
+                    processing: 'Procesando...',
+                    search: 'Buscar:',
+                    zeroRecords: 'No se encontraron usuarios',
+                    paginate: {
+                        first: '<i class="fas fa-angle-double-left" aria-hidden="true"></i>',
+                        last: '<i class="fas fa-angle-double-right" aria-hidden="true"></i>',
+                        next: '<i class="fas fa-chevron-right" aria-hidden="true"></i>',
+                        previous: '<i class="fas fa-chevron-left" aria-hidden="true"></i>'
+                    }
+                }
+            });
+        }
+
         // Configurar los botones de eliminación para abrir el modal
+        const formUsuario = document.getElementById('form-usuario');
+        const passwordInput = document.getElementById('usuario_password');
+        const passwordConfirmInput = document.getElementById('usuario_password_conf');
+        const passwordFeedback = document.getElementById('password-match-feedback');
+        const btnGuardarUsuario = document.getElementById('btn-guardar-usuario');
+
+        function validarPasswordsEnVivo() {
+            const password = passwordInput.value;
+            const confirmacion = passwordConfirmInput.value;
+            const hayConfirmacion = confirmacion.length > 0;
+            const coinciden = password !== '' && password === confirmacion;
+
+            passwordInput.classList.remove('is-valid', 'is-invalid');
+            passwordConfirmInput.classList.remove('is-valid', 'is-invalid');
+            passwordFeedback.classList.remove('is-valid', 'is-invalid');
+
+            if (!hayConfirmacion) {
+                passwordFeedback.textContent = '';
+                btnGuardarUsuario.disabled = false;
+                passwordConfirmInput.setCustomValidity('');
+                return true;
+            }
+
+            if (coinciden) {
+                passwordInput.classList.add('is-valid');
+                passwordConfirmInput.classList.add('is-valid');
+                passwordFeedback.classList.add('is-valid');
+                passwordFeedback.textContent = 'Las contraseñas coinciden';
+                btnGuardarUsuario.disabled = false;
+                passwordConfirmInput.setCustomValidity('');
+                return true;
+            }
+
+            passwordInput.classList.add('is-invalid');
+            passwordConfirmInput.classList.add('is-invalid');
+            passwordFeedback.classList.add('is-invalid');
+            passwordFeedback.textContent = 'Las contraseñas no coinciden';
+            btnGuardarUsuario.disabled = true;
+            passwordConfirmInput.setCustomValidity('Las contraseñas no coinciden');
+            return false;
+        }
+
+        passwordInput.addEventListener('input', validarPasswordsEnVivo);
+        passwordConfirmInput.addEventListener('input', validarPasswordsEnVivo);
+
+        formUsuario.addEventListener('submit', function(e) {
+            if (!validarPasswordsEnVivo()) {
+                e.preventDefault();
+                passwordConfirmInput.focus();
+            }
+        });
+
+        formUsuario.addEventListener('reset', function() {
+            setTimeout(validarPasswordsEnVivo, 0);
+        });
+
         const deleteButtons = document.querySelectorAll('.delete-btn');
         deleteButtons.forEach(button => {
             button.addEventListener('click', function() {
