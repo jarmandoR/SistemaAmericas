@@ -100,6 +100,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'cambi
 }
 
 $productos = $producto->obtenerProductosLista(0);
+$categorias = $producto->obtenerCategorias();
+$categoriasPorId = [];
+
+foreach ($categorias as $categoriaItem) {
+    $categoriasPorId[(string) $categoriaItem['id_categoria']] = $categoriaItem['nombre_categoria'];
+}
 
 // Capturar parámetros de resultado
 $importados = $_GET['importados'] ?? 0;
@@ -120,7 +126,8 @@ $preciosActualizados = $_GET['precios_actualizados'] ?? 0;
 
 <style>
 :root {
-    --primary-color: #2563eb;
+    --primary-color: #1f5f80;
+    --menu-header-gradient: linear-gradient(180deg, #1f5f80 0%, #174b66 100%);
     --secondary-color: #64748b;
     --card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
 }
@@ -131,6 +138,7 @@ $preciosActualizados = $_GET['precios_actualizados'] ?? 0;
     border: none;
     border-radius: 12px;
     box-shadow: var(--card-shadow);
+    overflow: hidden;
 }
 
 .product-modal-content {
@@ -271,7 +279,7 @@ $preciosActualizados = $_GET['precios_actualizados'] ?? 0;
 }
 
 .module-header {
-    background: linear-gradient(135deg, var(--primary-color) 0%, #3b82f6 100%);
+    background: var(--menu-header-gradient);
     color: white;
     border-radius: 12px;
     padding: 2rem;
@@ -285,6 +293,73 @@ $preciosActualizados = $_GET['precios_actualizados'] ?? 0;
 
 .module-header p {
     font-size: 1rem;
+}
+
+.section-card-header {
+    background: var(--menu-header-gradient);
+    color: white;
+    border: 0;
+    border-radius: 12px 12px 0 0 !important;
+    padding: 1rem 1.25rem;
+}
+
+.section-card-header .text-primary {
+    color: white !important;
+}
+
+.filters-bar {
+    border-top: 1px solid #f1f5f9;
+}
+
+.filters-bar label {
+    color: #64748b;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+}
+
+.filters-bar .form-control {
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    min-height: 42px;
+}
+
+.bulk-upload-toggle {
+    align-items: center;
+    border: 0;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    text-align: left;
+    width: 100%;
+}
+
+.bulk-upload-card {
+    border-radius: 12px !important;
+    overflow: hidden;
+}
+
+.bulk-upload-toggle:hover,
+.bulk-upload-toggle:focus {
+    color: white;
+    outline: none;
+}
+
+.bulk-upload-toggle .toggle-icon {
+    transition: transform 0.2s ease;
+}
+
+.bulk-upload-toggle[aria-expanded="true"] .toggle-icon {
+    transform: rotate(180deg);
+}
+
+.bulk-upload-summary {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 400;
+    opacity: 0.9;
 }
 </style>
 
@@ -337,17 +412,25 @@ $preciosActualizados = $_GET['precios_actualizados'] ?? 0;
 <!-- Formulario de carga de Excel -->
 <div class="container-fluid">
 
-    <div class="container py-5">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
+    <div class="container-fluid px-0 py-3">
+        <div class="row no-gutters">
+            <div class="col-12">
 
-                <div class="card shadow-lg border-0 rounded-4">
-                    <div class="card-header bg-gradient text-white text-center rounded-top-4" style="background:  #009688 ;">
-                        <h4 class="mb-0">💰 Actualización Masiva de Precios</h4>
-                        <small>Importa productos y actualiza precios automáticamente</small>
-                    </div>
+                <div class="card shadow-lg border-0 rounded-4 bulk-upload-card">
+                    <button class="card-header section-card-header bulk-upload-toggle"
+                        type="button"
+                        data-toggle="collapse"
+                        data-target="#actualizacionMasivaProductos"
+                        aria-expanded="false"
+                        aria-controls="actualizacionMasivaProductos">
+                        <span>
+                            <span class="h4 mb-0 d-block">💰 Actualización Masiva de Precios</span>
+                            <span class="bulk-upload-summary">Importa productos y actualiza precios automáticamente</span>
+                        </span>
+                        <i class="fas fa-chevron-down toggle-icon" aria-hidden="true"></i>
+                    </button>
 
-                    <div class="card-body p-4">
+                    <div class="card-body p-4 collapse" id="actualizacionMasivaProductos">
                         <form id="uploadForm" action="../controllers/ProductoController.php" method="POST" enctype="multipart/form-data">
                             <div class="upload-zone" onclick="document.getElementById('archivo_excel').click()">
                                 <div class="upload-icon">💰</div>
@@ -378,8 +461,28 @@ $preciosActualizados = $_GET['precios_actualizados'] ?? 0;
 <!-- Lista de productos -->
 <div class="container-fluid mt-4">
     <div class="modern-card">
-        <div class="card-header bg-white">
+        <div class="card-header section-card-header">
             <h5 class="card-title mb-0 font-weight-bold"><i class="fas fa-list text-primary"></i> &nbsp; Lista de Productos</h5>
+        </div>
+        <div class="filters-bar bg-white px-3 py-3">
+            <div class="row align-items-end">
+                <div class="col-md-4 col-lg-3">
+                    <label for="filtro-categoria-productos">Filtrar por categoria</label>
+                    <select class="form-control" id="filtro-categoria-productos">
+                        <option value="">Todas las categorias</option>
+                        <?php foreach ($categorias as $categoriaItem): ?>
+                            <option value="<?php echo htmlspecialchars($categoriaItem['nombre_categoria']); ?>">
+                                <?php echo htmlspecialchars($categoriaItem['nombre_categoria']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-md-4 col-lg-3 mt-3 mt-md-0">
+                    <button type="button" class="btn btn-outline-modern btn-block" id="limpiar-filtro-categoria">
+                        <i class="fas fa-eraser mr-2"></i>Limpiar filtro
+                    </button>
+                </div>
+            </div>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -410,7 +513,7 @@ $preciosActualizados = $_GET['precios_actualizados'] ?? 0;
                                 <td><?php echo htmlspecialchars($prod['cantidad_paca_producto']); ?></td>
                                 <td>$<?php echo number_format($prod['precio_unidad_producto'],2); ?></td>
                                 <td>$<?php echo number_format($prod['precio_paca_producto'], 2); ?></td>
-                                <td><?php echo htmlspecialchars($prod['id_cate_producto']); ?></td>
+                                <td><?php echo htmlspecialchars($categoriasPorId[(string) $prod['id_cate_producto']] ?? $prod['id_cate_producto']); ?></td>
                                 <td><?php echo htmlspecialchars($prod['acti_Unidad']); ?></td>
                                 <td>
                                     <?php if (!empty($prod['imagen_producto'])): ?>
@@ -500,7 +603,13 @@ $preciosActualizados = $_GET['precios_actualizados'] ?? 0;
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label for="edit_id_cate_producto">Categoria</label>
-                                <input type="number" class="form-control" name="id_cate_producto" id="edit_id_cate_producto" min="1">
+                                <select class="form-control" name="id_cate_producto" id="edit_id_cate_producto">
+                                    <?php foreach ($categorias as $categoriaItem): ?>
+                                        <option value="<?php echo htmlspecialchars($categoriaItem['id_categoria']); ?>">
+                                            <?php echo htmlspecialchars($categoriaItem['nombre_categoria']); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -548,8 +657,10 @@ $preciosActualizados = $_GET['precios_actualizados'] ?? 0;
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    let tablaProductos = null;
+
     if (window.jQuery && $.fn.DataTable) {
-        $('#tabla-productos').DataTable({
+        tablaProductos = $('#tabla-productos').DataTable({
             pageLength: 50,
             lengthMenu: [[50, 100, 200, -1], [50, 100, 200, 'Todos']],
             order: [[0, 'desc']],
@@ -574,6 +685,25 @@ document.addEventListener('DOMContentLoaded', function() {
                     previous: '<i class="fas fa-chevron-left" aria-hidden="true"></i>'
                 }
             }
+        });
+
+        $('#filtro-categoria-productos').on('change', function() {
+            const categoria = this.value;
+            const busqueda = categoria ? '^' + $.fn.dataTable.util.escapeRegex(categoria) + '$' : '';
+
+            tablaProductos
+                .column(6)
+                .search(busqueda, true, false)
+                .draw();
+        });
+
+        $('#limpiar-filtro-categoria').on('click', function() {
+            $('#filtro-categoria-productos').val('');
+
+            tablaProductos
+                .column(6)
+                .search('')
+                .draw();
         });
     }
 
