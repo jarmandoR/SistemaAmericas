@@ -412,7 +412,13 @@ $preciosActualizados = $_GET['precios_actualizados'] ?? 0;
                                 <td>$<?php echo number_format($prod['precio_paca_producto'], 2); ?></td>
                                 <td><?php echo htmlspecialchars($prod['id_cate_producto']); ?></td>
                                 <td><?php echo htmlspecialchars($prod['acti_Unidad']); ?></td>
-                                <td><?php echo htmlspecialchars($prod['imagen_producto']); ?></td>
+                                <td>
+                                    <?php if (!empty($prod['imagen_producto'])): ?>
+                                        <a href="<?php echo htmlspecialchars($prod['imagen_producto']); ?>" target="_blank" rel="noopener noreferrer">Ver</a>
+                                    <?php else: ?>
+                                        -
+                                    <?php endif; ?>
+                                </td>
                                 <td>
                                     <form action="" method="POST" class="estado-producto-form mb-0">
                                         <input type="hidden" name="action" value="cambiar_estado_producto">
