@@ -11,7 +11,7 @@ $menuItems = [
     ['href' => 'home.php', 'icon' => 'fab fa-dashcube', 'label' => 'Home'],
     ['href' => 'clientes.php', 'icon' => 'fas fa-address-book', 'label' => 'Clientes'],
     ['href' => 'promo.php', 'icon' => 'fas fa-bullhorn', 'label' => 'Promociones'],
-    ['href' => 'cartera.php', 'icon' => 'fas fa-file-invoice-dollar', 'label' => 'Pedidos'],
+    // ['href' => 'cartera.php', 'icon' => 'fas fa-file-invoice-dollar', 'label' => 'Pedidos'],
     ['href' => 'user-list.php', 'icon' => 'fas fa-user', 'label' => 'Usuarios'],
     ['href' => 'solicitudes.php', 'icon' => 'fas fa-shopping-cart', 'label' => 'Solicitudes'],
     ['href' => 'categorias.php', 'icon' => 'fas fa-th-large', 'label' => 'Catalogo'],
