@@ -9,7 +9,7 @@ require_once "../models/database.php";
 					<i class="fab fa-dashcube fa-fw"></i> &nbsp; HOME
 				</h3>
 				<p class="text-justify">
-					Bienvenido a Edmar Americas.
+					Bienvenido a Edmar Americas´s.
 				</p>
 			</div>
 			

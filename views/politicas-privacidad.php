@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Politicas de Privacidad | Edmar Americas</title>
+    <title>Politicas de Privacidad | Edmar Americas´s</title>
     <link rel="icon" type="image/png" href="../assets/img/logoM.png">
     <link rel="stylesheet" href="../css/normalize.css">
     <link rel="stylesheet" href="../css/bootstrap.min.css">
@@ -58,7 +58,7 @@
             <p class="legal-meta">Ultima actualizacion: abril de 2026</p>
 
             <p>
-                En Edmar Americas nos comprometemos a proteger la privacidad de nuestros clientes y usuarios.
+                En Edmar Americas´s nos comprometemos a proteger la privacidad de nuestros clientes y usuarios.
                 Esta politica explica como recopilamos, usamos, almacenamos y protegemos la informacion personal
                 que se entrega al utilizar nuestros servicios.
             </p>
@@ -95,12 +95,12 @@
             <h2>5. Derechos del usuario</h2>
             <p>
                 El usuario puede solicitar acceso, actualizacion, correccion o eliminacion de sus datos
-                personales mediante los canales oficiales de atencion de Edmar Americas.
+                personales mediante los canales oficiales de atencion de Edmar Americas´s.
             </p>
 
             <h2>6. Cambios en la politica</h2>
             <p>
-                Edmar Americas podra actualizar esta politica cuando sea necesario. La version vigente estara
+                Edmar Americas´s podra actualizar esta politica cuando sea necesario. La version vigente estara
                 disponible en esta pagina.
             </p>
         </section>

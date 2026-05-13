@@ -31,7 +31,7 @@ $usuarioSesion = $_SESSION["usuario"] ?? 'Usuario';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <title>Edmar Americas</title>
+    <title>Edmar Americas´s</title>
     <link rel="icon" type="image/png" href="../assets/img/logoM.png">
 
     <!-- Normalize V8.0.1 -->
@@ -77,7 +77,7 @@ $usuarioSesion = $_SESSION["usuario"] ?? 'Usuario';
                     <i class="far fa-times-circle show-nav-lateral"></i>
                     <img src="../assets/img/logoM.png" class="img-fluid" alt="Edmar Americas">
                     <figcaption class="roboto-medium text-center">
-                        Edmar Americas <br><small class="roboto-condensed-light">Administracion</small>
+                        Edmar Americas´s <br><small class="roboto-condensed-light">Administracion</small>
                     </figcaption>
                 </figure>
 

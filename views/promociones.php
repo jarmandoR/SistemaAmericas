@@ -64,7 +64,7 @@ $tienePromociones = hayPromocionesActivas();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Promociones - Edmar Americas</title>
+    <title>Promociones - Edmar Americas´s</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="../css/categoria.css" rel="stylesheet" type="text/css" />
@@ -180,7 +180,7 @@ $tienePromociones = hayPromocionesActivas();
                 <div class="d-flex align-items-center gap-2">
                     <img src="../assets/img/logoM.png" alt="Logo Edmar Americas" class="logo-img" style="height: 50px;">
                     <div class="d-flex flex-column">
-                        <h1 class="company-title m-0 fs-6">Edmar Americas</h1>
+                        <h1 class="company-title m-0 fs-6">Edmar Americas´s</h1>
                         <p class="company-subtitle m-0 small">Distribución especializada en Licores</p>
                     </div>
                 </div>

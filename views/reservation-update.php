@@ -34,7 +34,7 @@ require_once "../models/database.php";
                     <div class="container-fluid">
                         <div>
                             <span class="roboto-medium">CLIENTE:</span> 
-                            &nbsp; Edmar Americas
+                            &nbsp; Edmar Americas´s
                         </div>
                         <div class="table-responsive">
                             <table class="table table-dark table-sm">

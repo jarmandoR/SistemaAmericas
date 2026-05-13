@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Condiciones del Servicio | Edmar Americas</title>
+    <title>Condiciones del Servicio | Edmar Americas´s</title>
     <link rel="icon" type="image/png" href="../assets/img/logoM.png">
     <link rel="stylesheet" href="../css/normalize.css">
     <link rel="stylesheet" href="../css/bootstrap.min.css">
@@ -58,7 +58,7 @@
             <p class="legal-meta">Ultima actualizacion: abril de 2026</p>
 
             <p>
-                Estas condiciones regulan el uso de los servicios ofrecidos por Edmar Americas. Al realizar
+                Estas condiciones regulan el uso de los servicios ofrecidos por Edmar Americas´s. Al realizar
                 solicitudes, pedidos, pagos o reservas, el usuario acepta las condiciones descritas en este
                 documento.
             </p>
