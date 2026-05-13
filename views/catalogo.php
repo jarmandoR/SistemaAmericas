@@ -10,13 +10,25 @@ $numCliente = $_GET['idCli'] ?? '';
 $producto = new Producto();
 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $limit = 12;
-$offset = ($page - 1) * $limit;
 
 $totalProductos = $producto->contarProductos($categoria);
-$totalPaginas = ceil($totalProductos / $limit);
+$totalPaginas = (int) ceil($totalProductos / $limit);
+
+if ($totalPaginas > 0 && $page > $totalPaginas) {
+    $page = $totalPaginas;
+}
+
+$offset = ($page - 1) * $limit;
 
 // Llamada al nuevo método paginado
 $productos = $producto->obtenerProductos($categoria, $busqueda, $limit, $offset);
+if (!function_exists('catalogoPageUrl')) {
+    function catalogoPageUrl($pageNumber) {
+        $params = $_GET;
+        $params['page'] = $pageNumber;
+        return '?' . http_build_query($params);
+    }
+}
 function hayPromocionesActivas() {
     try {
         // Tu función getConnection() ya retorna todas las promociones
@@ -226,16 +238,48 @@ $tienePromociones = hayPromocionesActivas();
         </form>
 
         <?php if ($totalPaginas > 1): ?>
-            <nav class="d-flex justify-content-center mb-5">
-                <ul class="pagination">
-                    <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
-                        <li class="page-item <?php echo ($i === $page) ? 'active' : ''; ?>">
-                            <a class="page-link" href="?categoria=<?php echo urlencode($categoria); ?>&page=<?php echo $i; ?>">
-                                <?php echo $i; ?>
+            <?php
+            $paginasVisibles = [1, $totalPaginas];
+            for ($i = $page - 1; $i <= $page + 1; $i++) {
+                if ($i > 1 && $i < $totalPaginas) {
+                    $paginasVisibles[] = $i;
+                }
+            }
+            $paginasVisibles = array_values(array_unique($paginasVisibles));
+            sort($paginasVisibles);
+            $ultimaPaginaImpresa = 0;
+            ?>
+            <nav class="catalog-pagination" aria-label="Paginacion del catalogo">
+                <ul class="pagination mb-0">
+                    <li class="page-item <?php echo ($page <= 1) ? 'disabled' : ''; ?>">
+                        <a class="page-link page-control" href="<?php echo ($page > 1) ? catalogoPageUrl($page - 1) : '#'; ?>" aria-label="Pagina anterior">
+                            <i class="fas fa-chevron-left" aria-hidden="true"></i>
+                            <span>Anterior</span>
+                        </a>
+                    </li>
+
+                    <?php foreach ($paginasVisibles as $paginaVisible): ?>
+                        <?php if ($paginaVisible - $ultimaPaginaImpresa > 1): ?>
+                            <li class="page-item disabled page-ellipsis" aria-hidden="true">
+                                <span class="page-link">...</span>
+                            </li>
+                        <?php endif; ?>
+                        <li class="page-item <?php echo ($paginaVisible === $page) ? 'active' : ''; ?>">
+                            <a class="page-link" href="<?php echo catalogoPageUrl($paginaVisible); ?>" <?php echo ($paginaVisible === $page) ? 'aria-current="page"' : ''; ?>>
+                                <?php echo $paginaVisible; ?>
                             </a>
                         </li>
-                    <?php endfor; ?>
+                        <?php $ultimaPaginaImpresa = $paginaVisible; ?>
+                    <?php endforeach; ?>
+
+                    <li class="page-item <?php echo ($page >= $totalPaginas) ? 'disabled' : ''; ?>">
+                        <a class="page-link page-control" href="<?php echo ($page < $totalPaginas) ? catalogoPageUrl($page + 1) : '#'; ?>" aria-label="Pagina siguiente">
+                            <span>Siguiente</span>
+                            <i class="fas fa-chevron-right" aria-hidden="true"></i>
+                        </a>
+                    </li>
                 </ul>
+                <p class="pagination-status">Pagina <?php echo $page; ?> de <?php echo $totalPaginas; ?></p>
             </nav>
         <?php endif; ?>
     </div>
