@@ -113,15 +113,16 @@ $tienePromociones = hayPromocionesActivas();
             <div class="row" id="productGrid">
                 <?php if (!empty($productos)): ?>
                     <?php foreach ($productos as $index => $prod): ?>
+                        <?php $imagenProducto = !empty($prod['imagen_producto']) ? $prod['imagen_producto'] : '../assets/img/product-placeholder.svg'; ?>
                         <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-4 product-item" data-name="<?php echo strtolower($prod['descripcion_producto']); ?>">
                             <div class="product-card">
                                 <div class="position-relative">
                                     <div class="    ">
-                                         <img src="<?php echo htmlspecialchars($prod['imagen_producto']); ?>"
+                                         <img src="<?php echo htmlspecialchars($imagenProducto); ?>"
                                             class="product-image"
                                             loading="lazy"
                                             alt="<?php echo htmlspecialchars($prod['descripcion_producto']); ?>"
-                                            onerror="this.src='/placeholder.svg?height=220&width=300&text=Producto'">
+                                            onerror="this.onerror=null; this.src='../assets/img/product-placeholder.svg';">
                                     </div>
                                     <div class="category-badge">
                                         <?php echo strtoupper($categoria ?: 'LICOR'); ?>
