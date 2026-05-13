@@ -34,8 +34,8 @@ $(document).ready(function(){
 	$('.btn-exit-system').on('click', function(e){
 		e.preventDefault();
 		Swal.fire({
-			title: 'Are you sure to close the session?',
-			text: "You are about to close the session and exit the system",
+			title: 'seguro que desea salir del sistema?',
+			text: "Está a punto de cerrar la sesión actual",
 			type: 'question',
 			showCancelButton: true,
 			confirmButtonColor: '#3085d6',
