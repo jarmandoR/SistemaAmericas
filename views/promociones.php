@@ -181,7 +181,7 @@ $tienePromociones = hayPromocionesActivas();
                     <img src="../assets/img/logoM.png" alt="Logo Edmar Americas" class="logo-img" style="height: 50px;">
                     <div class="d-flex flex-column">
                         <h1 class="company-title m-0 fs-6">Edmar Americas´s</h1>
-                        <p class="company-subtitle m-0 small">Distribución especializada en Licores</p>
+                        <p class="company-subtitle m-0 small">Distribución especializada en Licores y más</p>
                     </div>
                 </div>
 
