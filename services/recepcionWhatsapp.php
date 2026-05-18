@@ -73,7 +73,7 @@ function mensajeAceptaTratamientoDatos($mensaje) {
 }
 
 function construirMensajeAutorizacion() {
-    return "Hola! Bienvenido a Edmar Americas 🛒✨\n\n"
+    return "Hola! Bienvenido a Edmar Americas´s 🛒✨\n\n"
         . "Para atenderte por este canal necesitamos tu autorizacion para tratar tus datos personales, como tu numero de telefono, nombre, direccion y la informacion necesaria para gestionar pedidos, entregas, soporte y comunicaciones relacionadas con nuestro servicio. 🔐\n\n"
         . "Puedes consultar nuestra politica de privacidad aqui: 📄\n"
         . "https://edmaramericas.com/sistema/views/politicas-privacidad.php\n\n"
@@ -81,7 +81,7 @@ function construirMensajeAutorizacion() {
 }
 
 function construirMensajePrincipal($link) {
-    return "Bienvenido a Edmar Americas! 🛒✨\n\n"
+    return "Bienvenido a Edmar Americas´s! 🛒✨\n\n"
         . "Tenemos licores 🍷, cervezas 🍺, bebidas 🥤, mezcladores, snacks 🍟 y muchos mas productos para tu negocio, reunion o celebracion.\n\n"
         . "Haz tu pedido facil y rapido tocando el boton de abajo. 🚚\n\n"
         . "Necesitas ayuda o mas informacion? 💬\n"

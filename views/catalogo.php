@@ -283,7 +283,7 @@ $tienePromociones = hayPromocionesActivas();
             </nav>
         <?php endif; ?>
     </div>
-    <input type="text" id="numCliente" data-numcliente="<?php echo $numCliente; ?>" />
+    <input type="hidden" id="numCliente" data-numcliente="<?php echo $numCliente; ?>" />
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../js/catalogo.js"></script>
 </body>

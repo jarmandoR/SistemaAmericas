@@ -243,7 +243,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["
                             <thead>
                                 <tr class="text-center roboto-medium">
                                     <th>#</th>
-                                    <th>BAR</th>
+                                    <th>Razón Social</th>
                                     <th>CLIENTE</th>
                                     <th>TELÉFONO</th>
                                     <th>DIRECCIÓN</th>

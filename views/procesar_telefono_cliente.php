@@ -90,8 +90,28 @@ $productos = $producto->obtenerCategorias();
           </div>
 
           <div class="mb-3">
-            <label for="cli_direccion" class="form-label">Dirección</label>
-            <input type="text" class="form-control" name="cli_direccion" id="cli_direccion" required>
+            <label class="form-label">Dirección</label>
+            <div class="address-builder">
+              <select class="form-select" id="direccion_tipo" required>
+                <option value="" disabled selected>Tipo</option>
+                <option value="Calle">Calle</option>
+                <option value="Carrera">Carrera</option>
+                <option value="Avenida">Avenida</option>
+                <option value="Avenida Carrera">Av. Carrera</option>
+                <option value="Avenida Calle">Av. Calle</option>
+                <option value="Diagonal">Diagonal</option>
+                <option value="Transversal">Transversal</option>
+                <option value="Circular">Circular</option>
+                <option value="Autopista">Autopista</option>
+              </select>
+              <input type="text" class="form-control address-number" id="direccion_numero_1" placeholder="12" inputmode="numeric" required>
+              <span class="address-symbol">#</span>
+              <input type="text" class="form-control address-number" id="direccion_numero_2" placeholder="34" inputmode="numeric" required>
+              <span class="address-symbol">-</span>
+              <input type="text" class="form-control address-number" id="direccion_numero_3" placeholder="56" inputmode="numeric" required>
+            </div>
+            <input type="hidden" name="cli_direccion" id="cli_direccion">
+            <div class="form-text" id="direccion_preview">Ej: Carrera 12 # 34 - 56</div>
           </div>
           <div class="mb-3">
             <select class="form-control" name="cli_zona" id="cliente_zona" required>
@@ -106,7 +126,7 @@ $productos = $producto->obtenerCategorias();
           </div>
           <!-- ✅ Nuevo campo Bar -->
           <div class="mb-3 position-relative">
-            <label for="cli_bar" class="form-label">Bar <span class="text-danger">*</span></label>
+            <label for="cli_bar" class="form-label">Razón social <span class="text-danger">*</span></label>
             <input type="text" class="form-control" name="cli_bar" id="cli_bar" maxlength="40" required>
             <input type="hidden" name="bar_id" id="cli_bar_id">
             <div id="cli_bar_autocomplete" class="autocomplete-suggestions" style="display: none;"></div>
@@ -490,9 +510,51 @@ $productos = $producto->obtenerCategorias();
 
   document.addEventListener('DOMContentLoaded', function() {
     const formCliente = document.getElementById('formCliente');
+    const direccionTipo = document.getElementById('direccion_tipo');
+    const direccionNumero1 = document.getElementById('direccion_numero_1');
+    const direccionNumero2 = document.getElementById('direccion_numero_2');
+    const direccionNumero3 = document.getElementById('direccion_numero_3');
+    const direccionCompleta = document.getElementById('cli_direccion');
+    const direccionPreview = document.getElementById('direccion_preview');
+
+    function limpiarNumeroDireccion(input) {
+      input.value = input.value.replace(/[^0-9A-Za-z]/g, '').toUpperCase();
+    }
+
+    function construirDireccion() {
+      const tipo = direccionTipo.value;
+      const numero1 = direccionNumero1.value.trim();
+      const numero2 = direccionNumero2.value.trim();
+      const numero3 = direccionNumero3.value.trim();
+
+      if (!tipo || !numero1 || !numero2 || !numero3) {
+        direccionCompleta.value = '';
+        direccionPreview.textContent = 'Ej: Carrera 12 # 34 - 56';
+        return '';
+      }
+
+      const direccion = `${tipo} ${numero1} # ${numero2} - ${numero3}`;
+      direccionCompleta.value = direccion;
+      direccionPreview.textContent = direccion;
+      return direccion;
+    }
+
+    [direccionNumero1, direccionNumero2, direccionNumero3].forEach((input) => {
+      input.addEventListener('input', function() {
+        limpiarNumeroDireccion(input);
+        construirDireccion();
+      });
+    });
+
+    direccionTipo.addEventListener('change', construirDireccion);
 
     formCliente.addEventListener('submit', function(e) {
       e.preventDefault();
+
+      if (!construirDireccion()) {
+        alert("Completa la dirección");
+        return;
+      }
 
       const formData = new FormData(formCliente);
       const telefonoInput = document.getElementById('cli_telefono');
@@ -711,6 +773,37 @@ $productos = $producto->obtenerCategorias();
 </script>
 
 <style>
+  .address-builder {
+    display: grid;
+    grid-template-columns: minmax(120px, 1.35fr) minmax(64px, 0.7fr) auto minmax(64px, 0.7fr) auto minmax(64px, 0.7fr);
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .address-symbol {
+    color: #6c757d;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .address-number {
+    text-align: center;
+  }
+
+  #direccion_preview {
+    min-height: 1.25rem;
+  }
+
+  @media (max-width: 576px) {
+    .address-builder {
+      grid-template-columns: 1fr auto 1fr auto 1fr;
+    }
+
+    .address-builder .form-select {
+      grid-column: 1 / -1;
+    }
+  }
+
   .autocomplete-suggestions {
     position: absolute;
     z-index: 1000;
